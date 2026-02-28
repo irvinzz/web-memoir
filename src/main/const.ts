@@ -2,7 +2,12 @@ import { join } from 'node:path';
 
 import { app } from 'electron';
 
-export const resourcesDir = join(
+export const resourcesDir = (
+  app.isPackaged
+) ? join(
+  app.getAppPath() + '.unpacked',
+  'resources',
+) : join(
   app.getAppPath(),
   'resources',
 );

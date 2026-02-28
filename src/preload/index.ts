@@ -14,7 +14,8 @@ const api: Api = {
   installCertificate: () => ipcRenderer.invoke('installCertificate'),
   openCertiticateFolder: () => ipcRenderer.invoke('openCertiticateFolder'),
   runCrawler: (space, startUrl, options) => ipcRenderer.invoke('runCrawler', space, startUrl, options),
-  putToClipboard: (input) => clipboard.writeText(input),
+  putToClipboard: async (input) => clipboard.writeText(input),
+  inspect: () => ipcRenderer.invoke('inspect'),
 }
 
 // Use `contextBridge` APIs to expose Electron APIs to

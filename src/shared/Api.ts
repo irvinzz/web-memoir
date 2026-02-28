@@ -19,7 +19,8 @@ export interface Api {
   openCertiticateFolder: () => Promise<void>;
   runCrawler: (space: string, startUrl: string, options: {
   }) => Promise<void>;
-  putToClipboard: (text: string) => void;
+  putToClipboard: (text: string) => Promise<void>;
+  inspect: () => Promise<any>;
 }
 
 export type ProxyOptions = {
