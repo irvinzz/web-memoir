@@ -89,16 +89,16 @@ export function useService() {
     handleAsyncAction,
   } = useHandleAsyncAction();
 
-  const enableService = useCallback(() => {
+  const enableService = useCallback((space: string) => {
     handleAsyncAction(async () => {
-      await window.api.startProxyInstance('default');
+      await window.api.startProxyInstance(space);
       setServiceEnabled(true);
     });
   }, []);
 
-  const disableService = useCallback(() => {
+  const disableService = useCallback((space: string) => {
     handleAsyncAction(async () => {
-      await window.api.stopProxyInstance('default');
+      await window.api.stopProxyInstance(space);
       setServiceEnabled(false);
     });
   }, []);
@@ -107,6 +107,9 @@ export function useService() {
     enabled,
     enableService,
     disableService,
+    describeInstance: (space: string) => {
+      return window.api.describeProxyInstance(space);
+    },
 
     toggleOption: (input: Partial<ProxyOptions>) => {
       handleAsyncAction(async () => {

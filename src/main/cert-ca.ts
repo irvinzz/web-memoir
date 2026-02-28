@@ -8,7 +8,7 @@ import { join } from 'node:path';
 
 import { app } from 'electron';
 
-const caPath = join(
+export const caPath = join(
   app.getPath('userData'),
   'cert',
 );

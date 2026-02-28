@@ -70,7 +70,9 @@ async function startDBInstance({
     if (pidCode) {
       const pidNumber = Number.parseInt(pidCode, 10);
       if (!Number.isNaN(pidNumber)) {
-        kill(pidNumber, 'SIGTERM');
+        try {
+          kill(pidNumber, 'SIGTERM');
+        } catch (e) {}
       }
     }
   }

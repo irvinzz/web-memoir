@@ -12,11 +12,14 @@ export interface Api {
   loadOptions: (space: string) => Promise<ProxyOptions>;
   applyOptions: (space: string, options: ProxyOptions) => Promise<void>;
   startProxyInstance: (space: string) => Promise<void>;
-  stopProxyInstance: (space: string) => Promise<void>,
+  stopProxyInstance: (space: string) => Promise<void>;
+  describeProxyInstance: (space: string) => Promise<{ port: number }>;
   startBrowser: (space: string, ignoreSSLError: boolean) => Promise<IPCResponse<START_BROWSER_CODES>>;
   installCertificate: () => Promise<void>;
+  openCertiticateFolder: () => Promise<void>;
   runCrawler: (space: string, startUrl: string, options: {
   }) => Promise<void>;
+  putToClipboard: (text: string) => void;
 }
 
 export type ProxyOptions = {

@@ -1,4 +1,4 @@
-import { contextBridge, ipcRenderer } from 'electron'
+import { clipboard, contextBridge, ipcRenderer } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
 
 import { Api, ProxyOptions } from '../shared/Api';
@@ -9,9 +9,12 @@ const api: Api = {
   applyOptions: (space, newOptions: ProxyOptions) => ipcRenderer.invoke('applyOptions', space, newOptions),
   startProxyInstance: (space) => ipcRenderer.invoke('startProxyInstance', space),
   stopProxyInstance: (space) => ipcRenderer.invoke('stopProxyInstance', space),
+  describeProxyInstance: (space) => ipcRenderer.invoke('describeProxyInstance', space),
   startBrowser: (space, ignoreSSLError) => ipcRenderer.invoke('startBrowser', space, ignoreSSLError),
   installCertificate: () => ipcRenderer.invoke('installCertificate'),
+  openCertiticateFolder: () => ipcRenderer.invoke('openCertiticateFolder'),
   runCrawler: (space, startUrl, options) => ipcRenderer.invoke('runCrawler', space, startUrl, options),
+  putToClipboard: (input) => clipboard.writeText(input),
 }
 
 // Use `contextBridge` APIs to expose Electron APIs to

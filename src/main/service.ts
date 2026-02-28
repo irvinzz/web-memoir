@@ -23,7 +23,7 @@ export function getProxyInstance(space: string) {
 }
 
 function onDBStopped(code: number | null) {
-  // 
+  stopProxyInstances({ allSpaces: true });
 }
 
 export async function startProxyInstance(options: {
