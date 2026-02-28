@@ -9,18 +9,19 @@ const { downloadMongoDbWithVersionInfo } = require('@mongodb-js/mongodb-download
 const { writeFileSync, unlinkSync, existsSync, mkdirSync } = require('node:fs');
 const { join, sep } = require('node:path');
 
-const RESOURCES_DIR = join(__dirname, 'resources', 'mongodb');
+const RESOURCE_DIR = join(__dirname, 'resources');
+const MONGODB_DL_DIR = join(RESOURCE_DIR, 'mongodb');
 
 // Ensure the resources directory exists before we download into it
-if (!existsSync(RESOURCES_DIR)) {
-  mkdirSync(RESOURCES_DIR, { recursive: true });
+if (!existsSync(MONGODB_DL_DIR)) {
+  mkdirSync(MONGODB_DL_DIR, { recursive: true });
 }
 
 // Use a fixed MongoDB version or override via environment variable
 const MONGODB_VERSION = process.env.MONGODB_VERSION || '8.0.17';
 
 downloadMongoDbWithVersionInfo({
-  directory: RESOURCES_DIR,
+  directory: MONGODB_DL_DIR,
   useLockfile: true,
   downloadOptions: {
     productionOnly: true,
@@ -34,12 +35,19 @@ downloadMongoDbWithVersionInfo({
     console.debug('MongoDB download results:', results);
 
     // Clean up binaries that are not needed for this application
-    const filesToUnlink = [
-      join('bin', process.platform === 'win32' ? 'mongos.exe' : 'mongos'),
-      join('bin', 'install_compass'),
-    ];
+    const filesToUnlink = {
+      win32: [
+        join('bin', 'mongos.exe'),
+        join('bin', 'install_compass.ps1'),
+        join('..', results.artifact),
+      ],
+      linux: [
+        join('bin', 'mongos'),
+        join('bin', 'install_compass'),
+      ],
+    };
 
-    for (const file of filesToUnlink) {
+    for (const file of filesToUnlink[process.platform]) {
       const pathToRemove = join(results.downloadedBinDir, '..', file);
       try {
         unlinkSync(pathToRemove);
