@@ -37,9 +37,9 @@ downloadMongoDbWithVersionInfo({
     // Clean up binaries that are not needed for this application
     const filesToUnlink = {
       win32: [
-        join('bin', 'mongos.exe'),
-        join('bin', 'install_compass.ps1'),
-        join('..', results.artifact),
+        join('bin', 'vc_redist.x64.exe'),
+        join('bin', 'Install-Compass.ps1'),
+        results.artifact,
       ],
       linux: [
         join('bin', 'mongos'),
