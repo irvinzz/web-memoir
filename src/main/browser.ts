@@ -2,24 +2,38 @@ import { openApp, apps } from "open";
 import { getCertificateManager } from "./cert";
 import { caCrtPath } from "./cert-ca";
 import { Api } from "../shared/Api";
+import { getProxyInstance } from "./service";
 
 const certManager = getCertificateManager(caCrtPath);
 
-async function startChromium() {
+async function startChromium(options: {
+  proxyPort: number;
+  profileName: string;
+}) {
+  const { profileName, proxyPort } = options;
   await openApp(apps.chrome, {
     arguments: [
-      "--proxy-server=https=localhost:3128",
-      "--profile-directory=offline-internet",
+      `--proxy-server=https=localhost:${proxyPort}`,
+      `--profile-directory=oi-${profileName}`,
     ],
     wait: false,
   });
 }
 
+async function launchBrowser(options: { space: string }) {
+  const proxyInstance = getProxyInstance(options.space);
+  await startChromium({
+    profileName: options.space,
+    proxyPort: proxyInstance!.port,
+  });
+}
+
 export const startBrowser: Api['startBrowser'] = async function startBrowser(
-  ignoreSSLError: boolean
+  space,
+  ignoreSSLError,
 ) {
   if (ignoreSSLError) {
-    await startChromium();
+    await launchBrowser({ space });
     return { code: 'OK', message: '' };
   }
 
@@ -32,7 +46,7 @@ export const startBrowser: Api['startBrowser'] = async function startBrowser(
     };
   }
 
-  await startChromium();
+  await launchBrowser({ space });
 
   return {
     code: 'OK',

@@ -1,12 +1,8 @@
 import { join } from 'node:path';
-import { app, shell, BrowserWindow, Tray, ipcMain, Menu, IpcMainInvokeEvent } from 'electron';
+import { app, shell, BrowserWindow, Tray, ipcMain, Menu } from 'electron';
 import { electronApp, optimizer, is } from '@electron-toolkit/utils';
 
 import icon from '../../resources/icon.png?asset';
-import { applyOptions, loadOptions, startService, stopService } from './service';
-import { Api } from '../shared/Api';
-import { installCertificate, startBrowser } from './browser';
-
 let mainWindow: BrowserWindow | null = null
 function createWindow(): void {
   // Create the browser window.
@@ -114,38 +110,4 @@ app.on('window-all-closed', () => {
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and require them here.
 
-type ToHandler<T extends (...args: any[]) => Promise<any>> = (
-  event: IpcMainInvokeEvent,
-  ...args: Parameters<T>
-) => ReturnType<T>;
-
-ipcMain.handle('loadOptions', (async () => {
-  return await loadOptions();
-}) as ToHandler<Api['loadOptions']>);
-
-ipcMain.handle('applyOptions', (async (event, newOptions) => {
-  await applyOptions(newOptions);
-}) as ToHandler<Api['applyOptions']>);
-
-ipcMain.handle('startService', (async () => {
-  await startService();
-  return {
-    msg: 'started',
-  };
-}) as ToHandler<Api['startService']>);
-
-ipcMain.handle('stopService', (async () => {
-  await stopService();
-  return {
-    msg: 'stopped',
-  };
-}) as ToHandler<Api['stopService']>);
-
-ipcMain.handle(
-  'startBrowser',
-  ((event, ignoreSSLError) => startBrowser(ignoreSSLError)) as ToHandler<Api['startBrowser']>,
-);
-
-ipcMain.handle('installCertificate', (async () => {
-  await installCertificate();
-}) as ToHandler<Api['installCertificate']>);
+import './api-handlers';

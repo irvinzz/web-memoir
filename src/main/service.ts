@@ -1,90 +1,108 @@
-import { join } from 'node:path';
-import { app, ipcMain } from 'electron';
-import { readFile, writeFile, access, constants } from 'node:fs/promises';
-import { Options } from '../shared/Api';
-import { startDB, stopDB } from './db';
-import { startProxy, stopProxy } from './proxy';
+import { ChildProcess } from 'node:child_process';
+
+import { app } from 'electron';
+import getPort from 'get-port';
+
+import { ProxyOptions } from '../shared/Api';
+import { getDBInstance, getRunningDBInstance } from './db';
+import { startProxy } from './proxy';
 import { createLogger } from './logger';
+import { writeOptions } from './options';
 
 const logger = createLogger('service');
 
-// Paths
-const optionsFilePath = join(app.getPath('userData'), 'options.json');
-
-// Default options – adjust according to your API spec
-const DEFAULT_OPTIONS: Options = {
-  // Example defaults
-  // port: 3128,
-  // ssl: false,
-};
-
-export async function startService(): Promise<void> {
-  try {
-    await startDB({
-      onClose: () => {
-        logger.warn('DB closed – stopping proxy');
-        stopProxy();
-      },
-    });
-    await startProxy({
-      onClose: () => {
-        logger.info('Proxy closed');
-      },
-    });
-    logger.info('Service started successfully');
-  } catch (err) {
-    logger.error('Failed to start service', err);
-    throw err;
-  }
+export interface ProxyInstance {
+  process: ChildProcess;
+  port: number;
 }
 
-export async function stopService(): Promise<void> {
-  try {
-    await stopProxy();
-    await stopDB();
-    logger.info('Service stopped');
-    ipcMain.emit('serviceStopped');
-  } catch (err) {
-    logger.error('Failed to stop service', err);
-    ipcMain.emit('serviceStopped');
-    throw err;
-  }
+const proxyInstances: Map<string, ProxyInstance> = new Map();
+
+export function getProxyInstance(space: string) {
+  return proxyInstances.get(space);
 }
 
-export async function loadOptions(): Promise<Options> {
-  try {
-    // Check if the file exists first
-    await access(optionsFilePath, constants.F_OK);
-    const content = await readFile(optionsFilePath, 'utf-8');
-    const parsed = JSON.parse(content);
-    // Basic validation – ensure the object is not null
-    if (parsed && typeof parsed === 'object') {
-      return parsed as Options;
+function onDBStopped(code: number | null) {
+  // 
+}
+
+export async function startProxyInstance(options: {
+  space: string;
+}): Promise<void> {
+  const { space } = options;
+  const dbInstance = await getDBInstance({ onClose: onDBStopped });
+  const proxyPort = await getPort({ port: 3128 });
+  const proxyInstance = await startProxy({
+    dbUrl: `mongodb://localhost:${dbInstance.port}`,
+    space: space,
+    port: proxyPort,
+    onClose(code) {
+      //
+    },
+  });
+  proxyInstances.set(options.space, {
+    process: proxyInstance,
+    port: proxyPort,
+  });
+  logger.info('Service started successfully');
+}
+
+export async function stopProxyInstances(
+  options: { space: string } | { allSpaces: true },
+): Promise<void> {
+  const spacesToStop = proxyInstances.keys().filter(
+    space => {
+      if ('allSpaces' in options) {
+        return true;
+      } else if ('space' in options) {
+        return options.space === space;
+      }
+      return false;
     }
-    logger.warn('Options file is empty or malformed – using defaults');
-  } catch (err) {
-    logger.warn('Could not load options file, using defaults', err);
+  )
+  for (const space of spacesToStop) {
+    await stopProxyInstance(space);
   }
-  return DEFAULT_OPTIONS;
+  if (proxyInstances.size === 0) {
+    logger.info('Stopping db instance');
+    const dbInstance = getRunningDBInstance();
+    if (dbInstance) {
+      await stopProcess(dbInstance.process);
+    }
+  }
 }
 
-export async function applyOptions(newOptions: Options): Promise<void> {
-  try {
-    const json = JSON.stringify(newOptions, null, 2);
-    await writeFile(optionsFilePath, json, 'utf-8');
-    logger.info('Options written to disk');
-    await stopProxy();
-    await startProxy({
-      onClose: () => {
-        logger.info('Proxy restarted with new options');
-      },
-    });
-  } catch (err) {
-    logger.error('Failed to apply options', err);
-    throw err;
+async function stopProxyInstance(space: string) {
+  const proxyProcess = getProxyInstance(space)?.process
+  if (proxyProcess) {
+    await stopProcess(proxyProcess);
   }
+  proxyInstances.delete(space);
+}
+
+export async function applyOptions(
+  options: { space: string },
+  newProxyOptions: ProxyOptions,
+): Promise<void> {
+  const { space } = options;
+  await writeOptions({ space }, newProxyOptions);
+  if (getProxyInstance(space)) {
+    await stopProxyInstance(space);
+    await startProxyInstance({ space });
+  }
+}
+
+export async function stopProcess(
+  childProcess: ChildProcess
+): Promise<void> {
+  return new Promise<void>((resolve) => {
+    childProcess!.on('close', () => {
+      resolve();
+    });
+    childProcess!.kill('SIGTERM');
+  });
 }
 
 app.on('before-quit', async () => {
-  await stopService();
+  await stopProxyInstances({ allSpaces: true });
 });

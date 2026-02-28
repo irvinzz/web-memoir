@@ -7,7 +7,6 @@ import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { app } from 'electron';
-import { mkdir } from 'node:fs/promises';
 
 const caPath = join(
   app.getPath('userData'),

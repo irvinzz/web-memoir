@@ -1,50 +1,60 @@
 import { join } from 'node:path';
 import { spawn, ChildProcess } from 'node:child_process';
 import { platform as osPlatform } from 'node:os';
-import { app } from 'electron';
 import { mkdir, readFile } from 'node:fs/promises';
+import { existsSync } from 'node:fs';
+import { kill } from 'node:process';
+
+import { app } from 'electron';
+import getPort from 'get-port';
+
 import { resourcesDir } from './const';
 import { createLogger } from './logger';
 
+const logger = createLogger('mongod');
 interface StartDBOptions {
-  onClose: (code: number | null) => void;
-  port?: number;          // default 3129
-  cacheSizeGB?: number;   // default 1
+  cacheSizeGB?: number;
+  onClose(code: number | null): void;
 }
 
 let dbChildProcess: ChildProcess | null = null;
+let listenPort: number | null = null;
 
-/**
- * Starts a MongoDB instance bundled with the application.
- *
- * @param options  Configuration for the MongoDB process.
- */
-export async function startDB({
-  onClose,
-  port = 3129,
-  cacheSizeGB = 1,
-}: StartDBOptions) {
-  const mongodLogger = createLogger('mongod');
+interface DBInstance {
+  port: number;
+  process: ChildProcess;
+}
 
-  if (dbChildProcess) {
-    mongodLogger.warn('MongoDB already running – ignoring startDB call');
-    return;
+export function getRunningDBInstance(): DBInstance | null {
+  if (dbChildProcess && listenPort) {
+    return { port: listenPort, process: dbChildProcess };
   }
 
+  return null;
+}
+
+export async function getDBInstance(options: StartDBOptions): Promise<DBInstance> {
+  return getRunningDBInstance() || startDBInstance(options);
+}
+
+async function startDBInstance({
+  cacheSizeGB = 1,
+  onClose,
+}: StartDBOptions): Promise<{ port: number; process: ChildProcess }> {
   const mongoDir = join(resourcesDir, 'mongodb');
   const instancePath = join(mongoDir, 'instance.json');
 
-  let manifest: any;
+  let manifest: { binDir: string } | null = null;
   try {
     const json = await readFile(instancePath, 'utf-8');
     manifest = JSON.parse(json);
   } catch (err) {
-    mongodLogger.error('Could not read MongoDB instance.json', err);
+    logger.error('Could not read MongoDB instance.json', err);
     throw err;
   }
 
   const binName = osPlatform() === 'win32' ? 'mongod.exe' : 'mongod';
-  const binPath = join(mongoDir, manifest.binDir, binName);
+  const binPath = join(mongoDir, manifest!.binDir, binName);
 
   const dataPath = join(
     app.getPath('appData'),
@@ -52,54 +62,51 @@ export async function startDB({
     'mongodb-data'
   );
 
-  try {
-    await mkdir(dataPath, { recursive: true });
-  } catch (err) {
-    mongodLogger.error('Could not create MongoDB data dir', err);
-    throw err;
+  await mkdir(dataPath, { recursive: true });
+
+  const lockFilePath = join(dataPath, 'mongod.lock');
+  if (existsSync(lockFilePath)) {
+    const pidCode = await readFile(lockFilePath, 'utf-8');
+    if (pidCode) {
+      const pidNumber = Number.parseInt(pidCode, 10);
+      if (!Number.isNaN(pidNumber)) {
+        kill(pidNumber, 'SIGTERM');
+      }
+    }
   }
 
+  listenPort = await getPort({ port: 27017 });
   const args = [
     `--dbpath=${dataPath}`,
     '--bind_ip',
     '127.0.0.1',
-    `--port=${port}`,
+    `--port=${listenPort}`,
     '--auth',
     `--wiredTigerCacheSizeGB=${cacheSizeGB}`,
     '--quiet',
   ];
 
-  const proc = spawn(binPath, args, { stdio: 'ignore' });
+  const process = spawn(binPath, args, { stdio: 'ignore' });
 
-  proc.stdout?.on('data', (msg) => mongodLogger.debug(msg.toString()));
-  proc.stderr?.on('data', (msg) => mongodLogger.error(msg.toString()));
+  logger.info('DB Instance started');
 
-  proc.on('close', (code) => {
-    mongodLogger.info(`MongoDB exited with code ${code}`);
+  process.stdout?.on('data', (msg) => logger.debug(msg.toString()));
+  process.stderr?.on('data', (msg) => logger.error(msg.toString()));
+
+  process.on('close', (code) => {
+    logger.info(`MongoDB exited with code ${code}`);
     dbChildProcess = null;
+    listenPort = null;
     onClose(code);
   });
 
-  proc.on('error', (err) => {
-    mongodLogger.error('Failed to start MongoDB process', err);
+  process.on('error', (err) => {
+    logger.error('Failed to start MongoDB process', err);
     dbChildProcess = null;
-    onClose(null);
+    listenPort = null;
   });
 
-  dbChildProcess = proc;
-}
+  dbChildProcess = process;
 
-/**
- * Gracefully stops the running MongoDB instance.
- */
-export async function stopDB(): Promise<void> {
-  if (!dbChildProcess) return Promise.resolve();
-
-  return new Promise<void>((resolve) => {
-    dbChildProcess!.on('close', () => {
-      dbChildProcess = null;
-      resolve();
-    });
-    dbChildProcess!.kill('SIGTERM');
-  });
+  return { port: listenPort, process: dbChildProcess };
 }

@@ -5,6 +5,11 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   main: {
     build: {
+      rollupOptions: {
+        output: {
+          interop: 'auto',
+        },
+      },
       watch: {
         buildDelay: 500,
       },

@@ -1,16 +1,17 @@
 import { contextBridge, ipcRenderer } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
 
-import { Api, Options } from '../shared/Api';
+import { Api, ProxyOptions } from '../shared/Api';
 
 // Custom APIs for renderer
 const api: Api = {
-  loadOptions: () => ipcRenderer.invoke('loadOptions'),
-  applyOptions: (newOptions: Options) => ipcRenderer.invoke('applyOptions', newOptions),
-  startService: () => ipcRenderer.invoke('startService'),
-  stopService: () => ipcRenderer.invoke('stopService'),
-  startBrowser: (ignoreSSLError) => ipcRenderer.invoke('startBrowser', ignoreSSLError),
+  loadOptions: (space) => ipcRenderer.invoke('loadOptions', space),
+  applyOptions: (space, newOptions: ProxyOptions) => ipcRenderer.invoke('applyOptions', space, newOptions),
+  startProxyInstance: (space) => ipcRenderer.invoke('startProxyInstance', space),
+  stopProxyInstance: (space) => ipcRenderer.invoke('stopProxyInstance', space),
+  startBrowser: (space, ignoreSSLError) => ipcRenderer.invoke('startBrowser', space, ignoreSSLError),
   installCertificate: () => ipcRenderer.invoke('installCertificate'),
+  runCrawler: (space, startUrl, options) => ipcRenderer.invoke('runCrawler', space, startUrl, options),
 }
 
 // Use `contextBridge` APIs to expose Electron APIs to

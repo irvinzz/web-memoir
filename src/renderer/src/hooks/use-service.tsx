@@ -1,14 +1,17 @@
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
+
+import { ProxyOptions } from '@shared';
+
 import { useHandleAsyncAction } from "./handle-async-action";
-import { Options } from '@shared';
 
 export type ServiceContextType = {
   enabled: boolean;
   setServiceEnabled: (input: boolean) => void;
 
-  options: Options;
-  toggleOption: (input: Partial<Options>) => Promise<void>;
+  options: ProxyOptions;
+  toggleOption: (input: Partial<ProxyOptions>) => Promise<void>;
 }
+
 export const ServiceContext = createContext<ServiceContextType>({
   enabled: false,
   setServiceEnabled() { },
@@ -26,25 +29,25 @@ export function ServiceProvider(props: {
 
   const [serviceEnabled, setServiceEnabled] = useState(false);
 
-  const [options, setOptions] = useState<Options>({});
+  const [options, setOptions] = useState<ProxyOptions>({});
   const [loadOptionsPromise, setLoadOptionsPromise] = useState<Promise<void>>();
 
   useEffect(() => {
     if (loadOptionsPromise) return;
     setLoadOptionsPromise(
-      window.api.loadOptions().then((loadedOptions) => {
+      window.api.loadOptions('default').then((loadedOptions) => {
         setOptions(loadedOptions);
       }),
     );
   }, [options]);
 
-  const toggleOption = useCallback(async (changes: Partial<Options>) => {
+  const toggleOption = useCallback(async (changes: Partial<ProxyOptions>) => {
     await handleAsyncAction(async () => {
-      const newOptions: Options = {
+      const newOptions: ProxyOptions = {
         ...options,
         ...changes,
       };
-      await window.api.applyOptions(newOptions);
+      await window.api.applyOptions('default', newOptions);
       setOptions(newOptions);
     });
   }, [options]);
@@ -88,15 +91,14 @@ export function useService() {
 
   const enableService = useCallback(() => {
     handleAsyncAction(async () => {
-      await window.api.startService();
+      await window.api.startProxyInstance('default');
       setServiceEnabled(true);
     });
   }, []);
 
   const disableService = useCallback(() => {
     handleAsyncAction(async () => {
-      const result = await window.api.stopService();
-      console.debug('result', result);
+      await window.api.stopProxyInstance('default');
       setServiceEnabled(false);
     });
   }, []);
@@ -106,7 +108,7 @@ export function useService() {
     enableService,
     disableService,
 
-    toggleOption: (input: Partial<Options>) => {
+    toggleOption: (input: Partial<ProxyOptions>) => {
       handleAsyncAction(async () => {
         await toggleOption(input);
       });

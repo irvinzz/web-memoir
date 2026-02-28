@@ -22,7 +22,7 @@ function Main(): React.JSX.Element {
   ] = useState<boolean>(false);
 
   const startBrowser = async (ignoreSSLError = false) => {
-    const launchResult = await window.api.startBrowser(ignoreSSLError);
+    const launchResult = await window.api.startBrowser('default', ignoreSSLError);
     if (launchResult.code === 'CERT_NOT_INSTALLED') {
       setInstallCertificateConfirmationDialogVisible(true);
     }

@@ -3,38 +3,29 @@ import { ChildProcess, fork } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
 
 import { resourcesDir } from './const';
-import { loadOptions } from './service';
 import { caCrtPath, caKeyPath, createRootCA } from './cert-ca';
 import { createLogger } from './logger';
+import { ProxyOptions } from '../shared/Api';
+import { loadOptions } from './options';
 
 const logger = createLogger('proxy');
 
-let proxyChildProcess: ChildProcess | null = null;
-
 export interface ProxyStartOptions {
-  /**
-   * Callback that is invoked when the proxy process exits.
-   * The `code` is the exit code or `null` if terminated by a signal.
-   */
+  space: string;
+  port: number;
+  dbUrl: string;
   onClose: (code: number | null) => void;
 }
 
-/**
- * Spawns the proxy child process with environment variables derived
- * from the user options.
- */
-export async function startProxy(options: ProxyStartOptions): Promise<void> {
+export async function startProxy(options: ProxyStartOptions): Promise<ChildProcess> {
+  const { dbUrl, space, port, onClose } = options;
   await createRootCA();
-  if (proxyChildProcess) {
-    logger.warn('Proxy already running – stopping existing instance');
-    await stopProxy();
-  }
 
   const proxyBundleFilePath = join(resourcesDir, 'test.js');
 
-  let appOptions: any = {};
+  let proxyOptions: ProxyOptions = {};
   try {
-    appOptions = await loadOptions();
+    proxyOptions = await loadOptions({ space });
   } catch (err) {
     logger.warn('Failed to load proxy options, using defaults', err);
   }
@@ -42,32 +33,26 @@ export async function startProxy(options: ProxyStartOptions): Promise<void> {
   const boolToEnv = (input?: boolean): string => (input ? '1' : '');
 
   const env = {
-    DB_URL: '',
-    DB_NAME: 'sitedump',
-    SELF_ADDRESS: 'http://localhost:3128',
+    DB_URL: dbUrl,
+    DB_NAME: `oi-${space}`,
+    SELF_ADDRESS: `http://localhost:${port}`,
     RCPWD: randomUUID(),
     FETCH_TIMEOUT: '1000',
-    UPSTREAM_PROXY: appOptions?.useUpstreamProxy
-      ? appOptions.upstreamProxyAddress
+    UPSTREAM_PROXY: proxyOptions?.useUpstreamProxy
+      ? proxyOptions.upstreamProxyAddress
       : undefined,
     APP_VERSION: 'wip',
     CA_KEY_PATH: caKeyPath,
     CA_CRT_PATH: caCrtPath,
-    OFFLINE_MODE: boolToEnv(appOptions?.offline),
-    ALLOW_LARGE: boolToEnv(appOptions?.allowLarge),
-    ALLOW_MEDIA: boolToEnv(appOptions?.allowMedia),
+    OFFLINE_MODE: boolToEnv(proxyOptions?.offline),
+    ALLOW_LARGE: boolToEnv(proxyOptions?.allowLarge),
+    ALLOW_MEDIA: boolToEnv(proxyOptions?.allowMedia),
   };
 
-  try {
-    proxyChildProcess = fork(proxyBundleFilePath, {
-      env,
-      stdio: 'pipe',
-    });
-  } catch (err) {
-    logger.error('Failed to fork proxy process', err);
-    options.onClose(null);
-    return;
-  }
+  const proxyChildProcess = fork(proxyBundleFilePath, {
+    env,
+    stdio: 'ignore',
+  });
 
   proxyChildProcess.stdout?.on('data', (msg) => {
     logger.debug(msg.toString());
@@ -79,39 +64,18 @@ export async function startProxy(options: ProxyStartOptions): Promise<void> {
 
   proxyChildProcess.on('error', (err) => {
     logger.error('Proxy process error', err);
-    options.onClose(null);
   });
 
   proxyChildProcess.on('close', (code) => {
     logger.info(`Proxy exited with code ${code}`);
-    proxyChildProcess = null;
-    options.onClose(code);
+    onClose(code);
   });
 
   proxyChildProcess.on('message', (msg) => {
     logger.debug('child->parent', msg);
   });
 
-  // Example: send an initial message if the child expects one.
-  proxyChildProcess.send('grgr', () => {
-    /* callback can be used for confirmation */
-  });
-
   logger.info('Proxy started');
-}
 
-/**
- * Gracefully terminates the proxy child process.
- */
-export async function stopProxy(): Promise<void> {
-  if (!proxyChildProcess) return;
-
-  return new Promise<void>((resolve) => {
-    proxyChildProcess!.on('close', () => {
-      proxyChildProcess = null;
-      logger.info('Proxy stopped');
-      resolve();
-    });
-    proxyChildProcess!.kill('SIGTERM');
-  });
+  return proxyChildProcess;
 }

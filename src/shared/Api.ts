@@ -9,15 +9,17 @@ export type INSTALL_CERTIFICATE_CODES = 'OK' | 'UNHANDLED_ERROR';
 export type START_BROWSER_CODES = 'OK' | CHECK_CERTIFICATE_CODES;
 
 export interface Api {
-  loadOptions: () => Promise<Options>;
-  applyOptions: (options: Options) => Promise<void>;
-  startService: (options?: Options) => Promise<{ msg: 'started' }>;
-  stopService: () => Promise<{ msg: 'stopped' }>,
-  startBrowser: (ignoreSSLError: boolean) => Promise<IPCResponse<START_BROWSER_CODES>>;
+  loadOptions: (space: string) => Promise<ProxyOptions>;
+  applyOptions: (space: string, options: ProxyOptions) => Promise<void>;
+  startProxyInstance: (space: string) => Promise<void>;
+  stopProxyInstance: (space: string) => Promise<void>,
+  startBrowser: (space: string, ignoreSSLError: boolean) => Promise<IPCResponse<START_BROWSER_CODES>>;
   installCertificate: () => Promise<void>;
+  runCrawler: (space: string, startUrl: string, options: {
+  }) => Promise<void>;
 }
 
-export type Options = {
+export type ProxyOptions = {
   useUpstreamProxy?: boolean;
   upstreamProxyAddress?: string;
   cacheShare?: boolean;
