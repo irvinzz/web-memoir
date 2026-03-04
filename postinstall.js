@@ -1,10 +1,3 @@
-// offline-internet/postinstall.js
-//
-// This script downloads the MongoDB binaries suitable for the current
-// platform/architecture during the post‑install phase.
-// It automatically detects the OS and arch, removes unnecessary binaries,
-// and writes an instance.json describing where the binaries live.
-
 const { downloadMongoDbWithVersionInfo } = require('@mongodb-js/mongodb-downloader');
 const { writeFileSync, unlinkSync, existsSync, mkdirSync } = require('node:fs');
 const { join, sep } = require('node:path');

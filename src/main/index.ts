@@ -2,7 +2,9 @@ import { join } from 'node:path';
 import { app, shell, BrowserWindow, Tray, ipcMain, Menu } from 'electron';
 import { electronApp, optimizer, is } from '@electron-toolkit/utils';
 
-import icon from '../../resources/icon.png?asset';
+import { stopProxyInstances } from './service';
+
+import icon from '../../resources/icon9.png?asset';
 let mainWindow: BrowserWindow | null = null
 function createWindow(): void {
   // Create the browser window.
@@ -17,7 +19,7 @@ function createWindow(): void {
       sandbox: false
     },
     maximizable: false,
-    closable: false,
+    closable: true,
   });
 
   mainWindow.on('ready-to-show', () => {
@@ -36,11 +38,6 @@ function createWindow(): void {
   } else {
     mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
   }
-
-  mainWindow.on('close', () => {
-    // e.preventDefault();
-    mainWindow?.hide();
-  });
 }
 
 // This method will be called when Electron has finished
@@ -68,11 +65,30 @@ app.whenReady().then(() => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow()
   })
 
-})
+  // Prevent stop app when main window closed
+  mainWindow!.on('close', (e) => {
+    e.preventDefault();
+    mainWindow!.hide();
+  });
+
+  // Close window and Gracefully stop all services then close application
+  app.on('before-quit', (event) => {
+    event.preventDefault();
+    setTimeout(() => {
+      mainWindow?.close();
+      stopProxyInstances({
+        allSpaces: true
+      }).then(() => {
+        console.log('All Proxy instances stopped');
+        app.exit();
+      });
+    }, 1);
+  });
+});
 
 let tray: Tray | null = null;
 app.whenReady().then(() => {
-  tray = new Tray('./resources/icon.png');
+  tray = new Tray('./resources/icon9.png');
   tray.setToolTip('Offline Internet');
 
   const contextMenu = Menu.buildFromTemplate([
@@ -105,7 +121,7 @@ app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     app.quit()
   }
-})
+});
 
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and require them here.
