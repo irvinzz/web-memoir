@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useRef, useState } from 'react';
 import {
   Box,
   Button,
@@ -15,46 +15,55 @@ import {
   Switch,
   TextField,
   Typography,
-} from "@mui/material";
+} from '@mui/material';
 
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import SettingsIcon from '@mui/icons-material/Settings';
-import { useService } from "@renderer/hooks/use-service";
-import { useHandleAsyncAction } from "@renderer/hooks/handle-async-action";
+import { useService } from '@renderer/hooks/use-service';
+import { useHandleAsyncAction } from '@renderer/hooks/handle-async-action';
 
-function Main(): React.JSX.Element {
+function Main(props: { space: string }): React.JSX.Element {
+  const { space } = props;
   const { handleAsyncAction } = useHandleAsyncAction();
   const [
     installCertificateConfirmationDialogVisible,
     setInstallCertificateConfirmationDialogVisible,
   ] = useState<boolean>(false);
 
-  const [
-    manualLaunchDialogVisible,
-    setManualLaunchDialogVisible,
-  ] = useState<{ visible: boolean; port: number } | null>(null);
+  const [manualLaunchDialogVisible, setManualLaunchDialogVisible] = useState<{
+    visible: boolean;
+    port: number;
+  } | null>(null);
 
-  const startBrowser = async (ignoreSSLError = false) => {
-    const launchResult = await window.api.startBrowser('default', ignoreSSLError);
-    if (launchResult.code === 'CERT_NOT_INSTALLED') {
-      setInstallCertificateConfirmationDialogVisible(true);
+  const startBrowser = async (ignoreSSLError = false): Promise<void> => {
+    const launchResult = await window.api.startBrowser(space, ignoreSSLError);
+    switch (launchResult.code) {
+      case 'OK': {
+        return;
+      }
+      case 'CERT_NOT_INSTALLED': {
+        setInstallCertificateConfirmationDialogVisible(true);
+        break;
+      }
+      default:
+        throw new Error(launchResult.code);
     }
-  }
+  };
 
-  const handleInstallCertificateCancel = () => {
+  const handleInstallCertificateCancel = (): void => {
     setInstallCertificateConfirmationDialogVisible(false);
-  }
+  };
 
-  const handleInstallCertificateIgnore = () => {
+  const handleInstallCertificateIgnore = (): void => {
     setInstallCertificateConfirmationDialogVisible(false);
     startBrowser(true);
   };
 
-  const handleInstallCertificeAgree = async () => {
+  const handleInstallCertificeAgree = async (): Promise<void> => {
     setInstallCertificateConfirmationDialogVisible(false);
     await window.api.installCertificate();
     await startBrowser(false);
-  }
+  };
 
   const {
     enableService,
@@ -63,61 +72,67 @@ function Main(): React.JSX.Element {
     options,
     toggleOption,
     describeInstance,
-  } = useService();
+  } = useService(space);
 
   const proxyRef = useRef<HTMLInputElement>(null);
-  const handleCopy = () => {
+  const handleCopy = (): void => {
     const value = proxyRef.current?.value ?? '';
     window.api.putToClipboard(value);
   };
 
   return (
-    <Box sx={{
-      display: 'flex',
-      justifyContent: 'space-around',
-      alignItems: 'center',
-      height: '80vh',
-      flexDirection: 'column',
-    }}>
+    <Box
+      sx={{
+        display: 'flex',
+        justifyContent: 'space-around',
+        alignItems: 'center',
+        height: '80vh',
+        flexDirection: 'column',
+      }}
+    >
       <FormControlLabel
-        control={<Switch
-          checked={resolvedServiceEnabled}
-          color={resolvedServiceEnabled ? 'success' : 'error'}
-          onChange={() => {
-            resolvedServiceEnabled ? disableService('default') : enableService('default');
-          }}
-        />}
+        control={
+          <Switch
+            checked={resolvedServiceEnabled}
+            color={resolvedServiceEnabled ? 'success' : 'error'}
+            onChange={() => {
+              resolvedServiceEnabled ? disableService() : enableService();
+            }}
+          />
+        }
         label={resolvedServiceEnabled ? 'Service started' : 'Service stopped'}
       />
       <FormControlLabel
-        control={<Switch
-          checked={options.offline}
-          color={options.offline ? 'error' : 'default'}
-          onChange={(e) => {
-            toggleOption({ offline: e.target.checked })
-          }}
-        />}
+        control={
+          <Switch
+            checked={options.offline}
+            color={options.offline ? 'error' : 'default'}
+            onChange={(e) => {
+              toggleOption({ offline: e.target.checked });
+            }}
+          />
+        }
         label={options.offline ? 'Offline Mode enabled' : 'Offline Mode disabled'}
       />
-      <ButtonGroup variant='contained'>
+      <ButtonGroup variant="contained">
         <Button
-          variant='contained'
-          color='info'
+          variant="contained"
+          color="info"
           disabled={!resolvedServiceEnabled}
-          onClick={(event) => {
-            startBrowser();
+          onClick={() => {
+            handleAsyncAction(async () => {
+              await startBrowser();
+            });
           }}
         >
           Launch Browser
         </Button>
-        <Button
-          color="info"
-          disabled={!resolvedServiceEnabled}
-        >
+        <Button color="info" disabled={!resolvedServiceEnabled}>
           <SettingsIcon
             onClick={() => {
               handleAsyncAction(async () => {
-                const result = await describeInstance('default');
+                const result = await describeInstance();
+                if (!result) throw new Error('PROXY_INSTANCE_MISSING');
                 setManualLaunchDialogVisible({
                   visible: true,
                   port: result.port,
@@ -128,10 +143,7 @@ function Main(): React.JSX.Element {
         </Button>
       </ButtonGroup>
 
-
-      <Dialog
-        open={manualLaunchDialogVisible?.visible || false}
-      >
+      <Dialog open={manualLaunchDialogVisible?.visible || false}>
         <DialogTitle></DialogTitle>
         <DialogContent>
           <Box sx={{ p: 3 }}>
@@ -168,16 +180,12 @@ function Main(): React.JSX.Element {
                     input: {
                       endAdornment: (
                         <InputAdornment position="end">
-                          <IconButton
-                            edge="end"
-                            aria-label="copy proxy"
-                            onClick={handleCopy}
-                          >
+                          <IconButton edge="end" aria-label="copy proxy" onClick={handleCopy}>
                             <ContentCopyIcon />
                           </IconButton>
                         </InputAdornment>
                       ),
-                    }
+                    },
                   }}
                 />
               </Stack>
@@ -185,11 +193,14 @@ function Main(): React.JSX.Element {
           </Box>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => { setManualLaunchDialogVisible(null) }}>
+          <Button
+            onClick={() => {
+              setManualLaunchDialogVisible(null);
+            }}
+          >
             Close
           </Button>
         </DialogActions>
-
       </Dialog>
 
       <Dialog
@@ -198,18 +209,14 @@ function Main(): React.JSX.Element {
           //
         }}
       >
-        <DialogTitle>
-          Certificate missing
-        </DialogTitle>
+        <DialogTitle>Certificate missing</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            Let's install application ssl certificate to your browser.
+            Let&apos;s install application ssl certificate to your browser.
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleInstallCertificateCancel}>
-            Cancel
-          </Button>
+          <Button onClick={handleInstallCertificateCancel}>Cancel</Button>
           <Button onClick={handleInstallCertificeAgree} autoFocus>
             Agree
           </Button>

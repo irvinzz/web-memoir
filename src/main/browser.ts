@@ -1,22 +1,17 @@
-import { ChildProcess, spawn } from "node:child_process";
-import { join } from "node:path";
+import { ChildProcess, spawn } from 'node:child_process';
+import { join } from 'node:path';
 
-import open, { openApp, apps } from "open";
-import { app } from "electron";
+import { app } from 'electron';
 
-import { getCertificateManager } from "./cert";
-import { caCrtPath } from "./cert-ca";
-import { importPlaywright } from "./playwright";
-import { stopProcess } from "./process";
-import { DBNamePrefix } from "./spaces";
+import { getCertificateManager } from './cert';
+import { caCrtPath } from './cert-ca';
+import { importPlaywright } from './playwright';
+import { stopProcess } from './process';
+import { DBNamePrefix } from './spaces';
 
 export const certManager = getCertificateManager(caCrtPath);
 
-const profilesBasePath = join(
-  app.getPath('appData'),
-  'offline-internet',
-  'chrome-profiles',
-);
+const profilesBasePath = join(app.getPath('appData'), 'offline-internet', 'chrome-profiles');
 
 interface ChromiumInstance {
   process: ChildProcess;
@@ -31,21 +26,18 @@ export async function startChromium(options: {
   const { profileName, proxyPort } = options;
   const { chromium } = importPlaywright();
 
-  const chromiumProcess = spawn(
-    chromium.executablePath(), 
-    [
-      `--proxy-server=https=localhost:${proxyPort}`,
-      `--user-data-dir=${profilesBasePath}`,
-      `--profile-directory=${DBNamePrefix}${profileName}`,
-      `--disable-infobars`,
-    ],
-  );
+  const chromiumProcess = spawn(chromium.executablePath(), [
+    `--proxy-server=https=localhost:${proxyPort}`,
+    `--user-data-dir=${profilesBasePath}`,
+    `--profile-directory=${DBNamePrefix}${profileName}`,
+    `--disable-infobars`,
+  ]);
 
   chromeInstances.set(profileName, {
     process: chromiumProcess,
   });
 
-  chromiumProcess.on('close', (code) => {
+  chromiumProcess.on('close', () => {
     chromeInstances.delete(profileName);
   });
 
@@ -62,7 +54,7 @@ export async function startChromium(options: {
   */
 }
 
-export async function stopBrowserInstance(profileName: string) {
+export async function stopBrowserInstance(profileName: string): Promise<void> {
   const instance = chromeInstances.get(profileName);
   if (instance) {
     await stopProcess(instance.process);

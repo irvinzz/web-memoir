@@ -1,7 +1,5 @@
 function Manage(): React.JSX.Element {
-  return (
-    <>Manage</>
-  );
+  return <>Manage</>;
 }
 
 export default Manage;

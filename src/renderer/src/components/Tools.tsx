@@ -1,10 +1,21 @@
-import { Button } from "@mui/material";
-import { useHandleAsyncAction } from "@renderer/hooks/handle-async-action";
+import { Button } from '@mui/material';
+import { useHandleAsyncAction } from '@renderer/hooks/handle-async-action';
 
-function Tools(): React.JSX.Element {
+function Tools(props: { space: string }): React.JSX.Element {
+  const { space } = props;
   const { handleAsyncAction } = useHandleAsyncAction();
   return (
-    <>Tools</>
+    <>
+      <Button
+        onClick={() => {
+          handleAsyncAction(async () => {
+            await window.api.runCrawler(space, 'https://primereact.org/', {});
+          });
+        }}
+      >
+        Crawl
+      </Button>
+    </>
   );
 }
 

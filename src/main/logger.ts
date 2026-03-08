@@ -1,10 +1,3 @@
-// offline-internet/src/main/logger.ts
-
-/**
- * Minimal logger factory that prefixes all messages with a unique identifier.
- *
- * Only the most common console methods are exposed: log, debug, info, warn, error.
- */
 export function createLogger(name: string) {
   const prefix = `[${name}]`;
 
