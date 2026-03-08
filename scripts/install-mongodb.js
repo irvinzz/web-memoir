@@ -2,7 +2,8 @@ const { downloadMongoDbWithVersionInfo } = require('@mongodb-js/mongodb-download
 const { writeFileSync, unlinkSync, existsSync, mkdirSync } = require('node:fs');
 const { join, sep } = require('node:path');
 
-const RESOURCE_DIR = join(__dirname, 'resources');
+const cwd = process.cwd();
+const RESOURCE_DIR = join(cwd, 'resources');
 const MONGODB_DL_DIR = join(RESOURCE_DIR, 'mongodb');
 
 // Ensure the resources directory exists before we download into it
@@ -50,9 +51,9 @@ downloadMongoDbWithVersionInfo({
     }
 
     // Write instance.json that points to the relative binDir
-    const instanceFile = join(__dirname, 'resources', 'mongodb', 'instance.json');
+    const instanceFile = join(cwd, 'resources', 'mongodb', 'instance.json');
     const binDirRelative = results.downloadedBinDir.replace(
-      join(__dirname, 'resources', 'mongodb') + sep,
+      join(cwd, 'resources', 'mongodb') + sep,
       '',
     );
 

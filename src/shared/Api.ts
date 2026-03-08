@@ -6,7 +6,7 @@ export interface IPCResponse<CODES extends string> {
 
 export type CHECK_CERTIFICATE_CODES = 'OK' | 'CERT_NOT_INSTALLED' | 'CERT_MISMATCH' | 'UNHANDLED_ERROR';
 export type INSTALL_CERTIFICATE_CODES = 'OK' | 'UNHANDLED_ERROR';
-export type START_BROWSER_CODES = 'OK' | CHECK_CERTIFICATE_CODES;
+export type START_BROWSER_CODES = 'OK' | 'PROXY_PROCESS_MISSING' | CHECK_CERTIFICATE_CODES;
 
 export interface Api {
   loadOptions: (space: string) => Promise<ProxyOptions>;

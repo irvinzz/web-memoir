@@ -7,6 +7,7 @@ import { caCrtPath, caKeyPath, createRootCA } from './cert-ca';
 import { createLogger } from './logger';
 import { ProxyOptions } from '../shared/Api';
 import { loadOptions } from './options';
+import { DBNamePrefix } from './spaces';
 
 const logger = createLogger('proxy');
 
@@ -34,7 +35,7 @@ export async function startProxy(options: ProxyStartOptions): Promise<ChildProce
 
   const env = {
     DB_URL: dbUrl,
-    DB_NAME: `oi-${space}`,
+    DB_NAME: `${DBNamePrefix}${space}`,
     SELF_ADDRESS: `http://localhost:${port}`,
     RCPWD: randomUUID(),
     FETCH_TIMEOUT: '1000',

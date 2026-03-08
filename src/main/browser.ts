@@ -1,16 +1,57 @@
-import { openApp, apps } from "open";
+import { ChildProcess, spawn } from "node:child_process";
+import { join } from "node:path";
+
+import open, { openApp, apps } from "open";
+import { app } from "electron";
+
 import { getCertificateManager } from "./cert";
 import { caCrtPath } from "./cert-ca";
-import { Api } from "../shared/Api";
-import { getProxyInstance } from "./service";
+import { importPlaywright } from "./playwright";
+import { stopProcess } from "./process";
+import { DBNamePrefix } from "./spaces";
 
-const certManager = getCertificateManager(caCrtPath);
+export const certManager = getCertificateManager(caCrtPath);
 
-async function startChromium(options: {
+const profilesBasePath = join(
+  app.getPath('appData'),
+  'offline-internet',
+  'chrome-profiles',
+);
+
+interface ChromiumInstance {
+  process: ChildProcess;
+}
+
+const chromeInstances: Map<string, ChromiumInstance> = new Map();
+
+export async function startChromium(options: {
   proxyPort: number;
   profileName: string;
-}) {
+}): Promise<ChildProcess> {
   const { profileName, proxyPort } = options;
+  const { chromium } = importPlaywright();
+
+  const chromiumProcess = spawn(
+    chromium.executablePath(), 
+    [
+      `--proxy-server=https=localhost:${proxyPort}`,
+      `--user-data-dir=${profilesBasePath}`,
+      `--profile-directory=${DBNamePrefix}${profileName}`,
+      `--disable-infobars`,
+    ],
+  );
+
+  chromeInstances.set(profileName, {
+    process: chromiumProcess,
+  });
+
+  chromiumProcess.on('close', (code) => {
+    chromeInstances.delete(profileName);
+  });
+
+  return chromiumProcess;
+
+  /*
   await openApp(apps.chrome, {
     arguments: [
       `--proxy-server=https=localhost:${proxyPort}`,
@@ -18,40 +59,14 @@ async function startChromium(options: {
     ],
     wait: false,
   });
+  */
 }
 
-async function launchBrowser(options: { space: string }) {
-  const proxyInstance = getProxyInstance(options.space);
-  await startChromium({
-    profileName: options.space,
-    proxyPort: proxyInstance!.port,
-  });
-}
-
-export const startBrowser: Api['startBrowser'] = async function startBrowser(
-  space,
-  ignoreSSLError,
-) {
-  if (ignoreSSLError) {
-    await launchBrowser({ space });
-    return { code: 'OK', message: '' };
+export async function stopBrowserInstance(profileName: string) {
+  const instance = chromeInstances.get(profileName);
+  if (instance) {
+    await stopProcess(instance.process);
   }
-
-  const certificateCheckResult = await certManager.checkInstalledCertificate();
-  console.debug('certificateCheckResult', certificateCheckResult);
-  if (certificateCheckResult.code !== 'OK') {
-    return {
-      ...certificateCheckResult,
-      message: "Certificate is not installed or does not match",
-    };
-  }
-
-  await launchBrowser({ space });
-
-  return {
-    code: 'OK',
-    message: '',
-  };
 }
 
 export async function installCertificate(): Promise<void> {

@@ -75,7 +75,6 @@ app.whenReady().then(() => {
   app.on('before-quit', (event) => {
     event.preventDefault();
     setTimeout(() => {
-      mainWindow?.close();
       stopProxyInstances({
         allSpaces: true
       }).then(() => {

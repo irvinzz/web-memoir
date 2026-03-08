@@ -1,8 +1,10 @@
+import { join } from 'node:path';
+
 import { app, ipcMain, IpcMainInvokeEvent, shell } from 'electron';
 
 import { applyOptions, getProxyInstance, startProxyInstance, stopProxyInstances } from './service';
-import { Api } from '../shared/Api';
-import { installCertificate, startBrowser } from './browser';
+import { Api, IPCResponse, START_BROWSER_CODES } from '../shared/Api';
+import { certManager, installCertificate, startChromium } from './browser';
 import { loadOptions } from './options';
 import { caPath } from './cert-ca';
 import { resourcesDir } from './const';
@@ -52,9 +54,35 @@ handle('runCrawler', (async (_event, space, startUrl, options) => {
 }) as ToHandler<Api['runCrawler']>)
 */
 
-handleApiEvent('startBrowser', async (_event, space, ignoreSSLError) => {
-  return await startBrowser(space, ignoreSSLError);
-});
+handleApiEvent('startBrowser', (async (_event, space, ignoreSSLError): Promise<IPCResponse<START_BROWSER_CODES>> => {
+  const proxyInstance = getProxyInstance(space);
+  if (!proxyInstance) {
+    return {
+      code: 'PROXY_PROCESS_MISSING',
+      message: '',
+    };
+  }
+  if (ignoreSSLError) {
+    await startChromium({ proxyPort: proxyInstance.port, profileName: space });
+    return { code: 'OK', message: '' };
+  }
+
+  const certificateCheckResult = await certManager.checkInstalledCertificate();
+  console.debug('certificateCheckResult', certificateCheckResult);
+  if (certificateCheckResult.code !== 'OK') {
+    return {
+      ...certificateCheckResult,
+      message: "Certificate is not installed or does not match",
+    };
+  }
+
+  await startChromium({ proxyPort: proxyInstance.port, profileName: space });
+
+  return {
+    code: 'OK',
+    message: '',
+  };
+}));
 
 handleApiEvent('installCertificate', async (_event) => {
   await installCertificate();

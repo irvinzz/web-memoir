@@ -8,6 +8,8 @@ import { getDBInstance, getRunningDBInstance } from './db';
 import { startProxy } from './proxy';
 import { createLogger } from './logger';
 import { writeOptions } from './options';
+import { stopBrowserInstance } from './browser';
+import { stopProcess } from './process';
 
 const logger = createLogger('service');
 
@@ -61,6 +63,7 @@ export async function stopProxyInstances(
     }
   )
   for (const space of spacesToStop) {
+    await stopBrowserInstance(space);
     await stopProxyInstance(space);
   }
   if (proxyInstances.size === 0) {
@@ -90,17 +93,6 @@ export async function applyOptions(
     await stopProxyInstance(space);
     await startProxyInstance({ space });
   }
-}
-
-export async function stopProcess(
-  childProcess: ChildProcess
-): Promise<void> {
-  return new Promise<void>((resolve) => {
-    childProcess!.on('close', () => {
-      resolve();
-    });
-    childProcess!.kill('SIGTERM');
-  });
 }
 
 app.on('before-quit', async () => {
