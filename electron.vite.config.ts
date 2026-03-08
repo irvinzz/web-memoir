@@ -9,6 +9,11 @@ export default defineConfig({
         output: {
           interop: 'auto',
         },
+        external: [
+          'crawlee',
+          'playwright',
+          '@playwright/browser-chromium',
+        ],
       },
       watch: {
         buildDelay: 500,

@@ -94,7 +94,6 @@ handleApiEvent('describeProxyInstance', async (_event, space) => {
 });
 
 handleApiEvent('openCertiticateFolder', async (_event) => {
-  // window.electronAPI.openFolder(pathToOpen);
   shell.openPath(caPath);
 });
 

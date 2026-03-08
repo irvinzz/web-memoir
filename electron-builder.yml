@@ -11,6 +11,9 @@ files:
   - '!{tsconfig.json,tsconfig.node.json,tsconfig.web.json}'
 asarUnpack:
   - resources/**
+  - '**/node_modules/crawlee/**/*'
+  - '**/node_modules/playwright/**/*'
+  - '**/node_modules/@playwright/browser-chromium/**/*'
 win:
   executableName: offline-internet
 nsis:

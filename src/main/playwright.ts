@@ -1,8 +1,9 @@
 import { join } from 'path';
 
+import type crawleePkg from 'crawlee';
+import type playWrightPkg from 'playwright';
+
 import { resourcesDir } from './const';
-import type crawleePkg from '../../resources/node_modules/crawlee';
-import type playWrightPkg from '../../resources/node_modules/playwright';
 
 process.env['PLAYWRIGHT_BROWSERS_PATH'] = join(
   resourcesDir,
@@ -11,8 +12,7 @@ process.env['PLAYWRIGHT_BROWSERS_PATH'] = join(
 );
 
 export function importCrawlee() {
-  const { PlaywrightCrawler, RequestQueue } = (require(join(resourcesDir, 'node_modules', 'crawlee'))) as typeof crawleePkg;
-
+  const { PlaywrightCrawler, RequestQueue } = require('crawlee') as typeof crawleePkg;
   return {
     PlaywrightCrawler,
     RequestQueue,
@@ -20,7 +20,7 @@ export function importCrawlee() {
 }
 
 export function importPlaywright() {
-  const { chromium } = (require(join(resourcesDir, 'node_modules', 'playwright'))) as typeof playWrightPkg;
+  const { chromium } = require('playwright') as typeof playWrightPkg;
   return {
     chromium,
   };
