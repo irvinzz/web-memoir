@@ -1,8 +1,11 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 export interface IPCResponse<CODES extends string> {
   code: CODES;
   message: string;
   error?: any;
+}
+
+export interface Space {
+  name: string;
 }
 
 export type CHECK_CERTIFICATE_CODES =
@@ -28,6 +31,10 @@ export interface Api {
   runCrawler: (space: string, startUrl: string, options: {}) => Promise<void>;
   putToClipboard: (text: string) => Promise<void>;
   inspect: () => Promise<any>;
+
+  getSpaces: () => Promise<Space[]>;
+  addSpace: (newSpace: Space) => Promise<void>;
+  removeSpace: (space: Space) => Promise<void>;
 }
 
 export type ProxyOptions = {

@@ -16,10 +16,12 @@ export function useService(space: string): {
 
   const [enabled, setEnabled] = useState<boolean>(false);
   const [options, setOptions] = useState<ProxyOptions>({});
+  const [catchedSpace, setCatchedSpace] = useState();
   const [loadOptionsPromise, setLoadOptionsPromise] = useState<Promise<void>>();
 
   useEffect(() => {
-    if (loadOptionsPromise) return;
+    if (loadOptionsPromise && catchedSpace === space) return;
+    setCatchedSpace(space);
     setLoadOptionsPromise(
       Promise.all([window.api.loadOptions(space), window.api.describeProxyInstance(space)]).then(
         ([loadedOptions, proxyInstance]) => {
@@ -30,11 +32,11 @@ export function useService(space: string): {
         }
       )
     );
-  }, [loadOptionsPromise, options, space]);
+  }, [catchedSpace, loadOptionsPromise, options, space]);
 
   const toggleOption = useCallback(
     async (changes: Partial<ProxyOptions>) => {
-      await handleAsyncAction(async () => {
+      handleAsyncAction(async () => {
         const newOptions: ProxyOptions = {
           ...options,
           ...changes,

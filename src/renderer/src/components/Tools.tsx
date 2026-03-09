@@ -1,7 +1,8 @@
 import { Button } from '@mui/material';
+import { Space } from '@shared';
 import { useHandleAsyncAction } from '@renderer/hooks/handle-async-action';
 
-function Tools(props: { space: string }): React.JSX.Element {
+function Tools(props: { space: Space }): React.JSX.Element {
   const { space } = props;
   const { handleAsyncAction } = useHandleAsyncAction();
   return (
@@ -9,7 +10,7 @@ function Tools(props: { space: string }): React.JSX.Element {
       <Button
         onClick={() => {
           handleAsyncAction(async () => {
-            await window.api.runCrawler(space, 'https://primereact.org/', {});
+            await window.api.runCrawler(space.name, 'https://primereact.org/', {});
           });
         }}
       >

@@ -6,12 +6,16 @@ import ManageHistoryIcon from '@mui/icons-material/ManageHistory';
 import InfoIcon from '@mui/icons-material/Info';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { AppBar, Tabs, Tab, Box, CssBaseline } from '@mui/material';
+
+import { Space } from '@shared';
+
 import Main from './components/Main';
 import { LoadingProvider, LoadingMask } from './hooks/handle-async-action';
 import Options from './components/Options';
 import Tools from './components/Tools';
 import About from './components/About';
 import SpaceManager from './components/SpaceManager';
+import { useSpaces } from './hooks/use-spaces';
 
 function TabPanel(props: {
   children?: React.ReactNode;
@@ -28,15 +32,24 @@ function TabPanel(props: {
 
 function App(): React.JSX.Element {
   const [tabIndex, setTabIndex] = useState(0);
-  const [currentSpace, setCurrentSpace] = useState('default');
-  const availableSpaces = ['default', 'development', 'staging', 'production'];
+
+  const { activeSpace, setActiveSpace, spaces, addSpace } = useSpaces();
 
   const handleTabChange = (_: React.SyntheticEvent, newValue: number): void => {
     setTabIndex(newValue);
   };
 
-  const handleSpaceChange = (space: string): void => {
-    setCurrentSpace(space);
+  const handleSpaceChange = (spaceName: string): void => {
+    const newActiveSpace = spaces.find((space) => space.name === spaceName);
+    if (!newActiveSpace) return;
+    setActiveSpace(newActiveSpace);
+  };
+
+  const handleAddSpace = async (newSpace: Space): Promise<void> => {
+    if (spaces.some((space) => space.name === newSpace.name)) {
+      return;
+    }
+    await addSpace(newSpace);
   };
 
   const theme = createTheme({
@@ -52,17 +65,12 @@ function App(): React.JSX.Element {
           <CssBaseline />
           <LoadingMask />
           <AppBar position="static">
-            <Box
-              sx={{
-                p: 1,
-              }}
-            >
-              <SpaceManager
-                space={currentSpace}
-                onSpaceChange={handleSpaceChange}
-                availableSpaces={availableSpaces}
-              />
-            </Box>
+            <SpaceManager
+              activeSpace={activeSpace}
+              onSpaceChange={handleSpaceChange}
+              availableSpaces={spaces}
+              onSpaceAdd={handleAddSpace}
+            />
             <Tabs value={tabIndex} onChange={handleTabChange}>
               <Tab label="Main" icon={<CloudOffIcon />} iconPosition="start" />
               <Tab label="Options" icon={<SettingsIcon />} iconPosition="start" />
@@ -70,18 +78,22 @@ function App(): React.JSX.Element {
               <Tab label="About" icon={<InfoIcon />} iconPosition="start" />
             </Tabs>
           </AppBar>
-          <TabPanel value={tabIndex} index={0}>
-            <Main space={currentSpace} />
-          </TabPanel>
-          <TabPanel value={tabIndex} index={1}>
-            <Options space={currentSpace} />
-          </TabPanel>
-          <TabPanel value={tabIndex} index={2}>
-            <Tools space={currentSpace} />
-          </TabPanel>
-          <TabPanel value={tabIndex} index={3}>
-            <About />
-          </TabPanel>
+          {activeSpace && (
+            <>
+              <TabPanel value={tabIndex} index={0}>
+                <Main space={activeSpace} />
+              </TabPanel>
+              <TabPanel value={tabIndex} index={1}>
+                <Options space={activeSpace} />
+              </TabPanel>
+              <TabPanel value={tabIndex} index={2}>
+                <Tools space={activeSpace} />
+              </TabPanel>
+              <TabPanel value={tabIndex} index={3}>
+                <About />
+              </TabPanel>
+            </>
+          )}
         </LoadingProvider>
       </ThemeProvider>
     </>

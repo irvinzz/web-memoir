@@ -105,3 +105,15 @@ handleApiEvent('inspect', async () => {
     },
   };
 });
+
+handleApiEvent('getSpaces', async () => {
+  return [
+    {
+      name: 'default',
+    },
+  ];
+});
+
+handleApiEvent('addSpace', async (_event, newSpace) => {});
+
+handleApiEvent('removeSpace', async (_event, space) => {});

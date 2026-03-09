@@ -13,12 +13,13 @@ import {
   Typography,
 } from '@mui/material';
 import { useService } from '@renderer/hooks/use-service';
+import { Space } from '@shared';
 
 import { socks5Re } from './const';
 
-function Options(props: { space: string }): React.JSX.Element {
+function Options(props: { space: Space }): React.JSX.Element {
   const { space } = props;
-  const { toggleOption, options } = useService(space);
+  const { toggleOption, options } = useService(space.name);
 
   const [proxyDialogVisible, setProxyDialogVisible] = useState(false);
   const [upstreamProxyValue, setUpstreamProxyValue] = useState('');

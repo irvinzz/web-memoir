@@ -21,8 +21,9 @@ import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import SettingsIcon from '@mui/icons-material/Settings';
 import { useService } from '@renderer/hooks/use-service';
 import { useHandleAsyncAction } from '@renderer/hooks/handle-async-action';
+import { Space } from '@shared';
 
-function Main(props: { space: string }): React.JSX.Element {
+function Main(props: { space: Space }): React.JSX.Element {
   const { space } = props;
   const { handleAsyncAction } = useHandleAsyncAction();
   const [
@@ -36,7 +37,7 @@ function Main(props: { space: string }): React.JSX.Element {
   } | null>(null);
 
   const startBrowser = async (ignoreSSLError = false): Promise<void> => {
-    const launchResult = await window.api.startBrowser(space, ignoreSSLError);
+    const launchResult = await window.api.startBrowser(space.name, ignoreSSLError);
     switch (launchResult.code) {
       case 'OK': {
         return;
@@ -72,7 +73,7 @@ function Main(props: { space: string }): React.JSX.Element {
     options,
     toggleOption,
     describeInstance,
-  } = useService(space);
+  } = useService(space.name);
 
   const proxyRef = useRef<HTMLInputElement>(null);
   const handleCopy = (): void => {
