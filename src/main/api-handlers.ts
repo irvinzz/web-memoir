@@ -2,13 +2,19 @@ import { join } from 'node:path';
 
 import { app, ipcMain, IpcMainInvokeEvent, shell } from 'electron';
 
-import { applyOptions, getProxyInstance, startProxyInstance, stopProxyInstances } from './service';
+import {
+  applyProxySettings,
+  getProxyInstance,
+  startProxyInstance,
+  stopProxyInstances,
+} from './service';
 import { Api, IPCResponse, START_BROWSER_CODES } from '../shared/Api';
 import { certManager, installCertificate, startChromium } from './browser';
-import { loadOptions } from './options';
+import { loadProxySettings } from './settings';
 import { caPath } from './cert-ca';
 import { resourcesDir } from './const';
 import { crawlWebsite } from './web-crawler';
+import { addSpace, getSpacesSettings, removeSpace, setActiveSpace } from './spaces';
 
 type ToHandler<T extends (...args: any[]) => Promise<any>> = (
   _event: IpcMainInvokeEvent,
@@ -20,11 +26,11 @@ function handleApiEvent<K extends keyof Api>(name: K, handler: ToHandler<Api[K]>
 }
 
 handleApiEvent('loadOptions', async (_event, space) => {
-  return await loadOptions({ space });
+  return await loadProxySettings(space);
 });
 
-handleApiEvent('applyOptions', async (_event, space, newOptions) => {
-  await applyOptions({ space }, newOptions);
+handleApiEvent('applyOptions', async (_event, space, newSettings) => {
+  await applyProxySettings({ space }, newSettings);
 });
 
 handleApiEvent('startProxyInstance', async (_event, space) => {
@@ -107,13 +113,17 @@ handleApiEvent('inspect', async () => {
 });
 
 handleApiEvent('getSpaces', async () => {
-  return [
-    {
-      name: 'default',
-    },
-  ];
+  return getSpacesSettings();
 });
 
-handleApiEvent('addSpace', async (_event, newSpace) => {});
+handleApiEvent('addSpace', async (_event, newSpace) => {
+  return addSpace(newSpace);
+});
 
-handleApiEvent('removeSpace', async (_event, space) => {});
+handleApiEvent('removeSpace', async (_event, space) => {
+  return removeSpace(space);
+});
+
+handleApiEvent('setActiveSpace', async (_event, space) => {
+  return setActiveSpace(space);
+});

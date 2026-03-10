@@ -1,38 +1,37 @@
-import { Space } from '@shared';
+import { Space, SpacesSettings } from '@shared';
 import { useEffect, useState } from 'react';
 
 export function useSpaces(): {
   activeSpace: Space | undefined;
-  setActiveSpace: (space: Space) => void;
+  setActiveSpace: (space: Space) => Promise<void>;
   spaces: Space[];
   addSpace: (newSpace: Space) => Promise<void>;
   removeSpace: (space: Space) => Promise<void>;
 } {
-  const [spaces, setSpaces] = useState<Space[]>([]);
+  const [spacesSettings, setSpacesSettings] = useState<SpacesSettings>();
   const [fetchOperation, setFetchOperation] = useState<Promise<void>>();
-  const [activeSpace, setActiveSpace] = useState<Space>();
+
+  const activeSpace = spacesSettings?.spaces.find(
+    (space) => space.name === spacesSettings.activeSpaceName
+  );
 
   useEffect(() => {
     if (fetchOperation) return;
     setFetchOperation(
       (async () => {
         const fetchedSpaces = await window.api.getSpaces();
-        setSpaces(fetchedSpaces);
+        setSpacesSettings(fetchedSpaces);
       })()
     );
   }, [fetchOperation]);
 
-  useEffect(() => {
-    if (activeSpace) return;
-    setActiveSpace(spaces[0]);
-  }, [activeSpace, spaces]);
-
   return {
     activeSpace,
-    setActiveSpace: (space) => {
-      setActiveSpace(space);
+    setActiveSpace: async (space) => {
+      await window.api.setActiveSpace(space);
+      setFetchOperation(undefined);
     },
-    spaces,
+    spaces: spacesSettings?.spaces || [],
     addSpace: async (newSpace) => {
       await window.api.addSpace(newSpace);
       setFetchOperation(undefined);

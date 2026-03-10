@@ -16,10 +16,14 @@ import { useService } from '@renderer/hooks/use-service';
 import { Space } from '@shared';
 
 import { socks5Re } from './const';
+import { useHandleAsyncAction } from '@renderer/hooks/handle-async-action';
 
 function Options(props: { space: Space }): React.JSX.Element {
   const { space } = props;
-  const { toggleOption, options } = useService(space.name);
+
+  const { handleAsyncAction } = useHandleAsyncAction();
+
+  const { toggleSettings, settings } = useService(space.name);
 
   const [proxyDialogVisible, setProxyDialogVisible] = useState(false);
   const [upstreamProxyValue, setUpstreamProxyValue] = useState('');
@@ -27,11 +31,13 @@ function Options(props: { space: Space }): React.JSX.Element {
 
   function onProxyDialogOK(): void {
     if (socks5Re.test(upstreamProxyValue)) {
-      toggleOption({
-        upstreamProxyAddress: upstreamProxyValue,
-        useUpstreamProxy: true,
+      handleAsyncAction(async () => {
+        await toggleSettings({
+          upstreamProxyAddress: upstreamProxyValue,
+          useUpstreamProxy: true,
+        });
+        setProxyDialogVisible(false);
       });
-      setProxyDialogVisible(false);
     } else {
       setUpstreamProxyValueInvalid(true);
     }
@@ -67,12 +73,12 @@ function Options(props: { space: Space }): React.JSX.Element {
         <ListItem alignItems="center">
           <Typography>Upstream Proxy</Typography>
           <Switch
-            checked={!!options.useUpstreamProxy}
+            checked={!!settings.useUpstreamProxy}
             onChange={(e) => {
               if (e.target.checked) {
                 setProxyDialogVisible(true);
               } else {
-                toggleOption({
+                toggleSettings({
                   useUpstreamProxy: false,
                 });
               }
@@ -82,15 +88,15 @@ function Options(props: { space: Space }): React.JSX.Element {
         <ListItem alignItems="center">
           <Typography>Allow large</Typography>
           <Switch
-            checked={!!options.allowLarge}
-            onChange={(e) => toggleOption({ allowLarge: e.target.checked })}
+            checked={!!settings.allowLarge}
+            onChange={(e) => toggleSettings({ allowLarge: e.target.checked })}
           />
         </ListItem>
         <ListItem alignItems="center">
           <Typography>Keep Media</Typography>
           <Switch
-            checked={!!options.allowMedia}
-            onChange={(e) => toggleOption({ allowMedia: e.target.checked })}
+            checked={!!settings.allowMedia}
+            onChange={(e) => toggleSettings({ allowMedia: e.target.checked })}
           />
         </ListItem>
       </List>

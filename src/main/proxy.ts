@@ -5,8 +5,8 @@ import { randomUUID } from 'node:crypto';
 import { resourcesDir } from './const';
 import { caCrtPath, caKeyPath, createRootCA } from './cert-ca';
 import { createLogger } from './logger';
-import { ProxyOptions } from '../shared/Api';
-import { loadOptions } from './options';
+import { ProxySettings } from '../shared/Api';
+import { loadProxySettings } from './settings';
 import { DBNamePrefix } from './spaces';
 
 const logger = createLogger('proxy');
@@ -24,9 +24,9 @@ export async function startProxy(options: ProxyStartOptions): Promise<ChildProce
 
   const proxyBundleFilePath = join(resourcesDir, 'test.js');
 
-  let proxyOptions: ProxyOptions = {};
+  let proxyOptions: ProxySettings = {};
   try {
-    proxyOptions = await loadOptions({ space });
+    proxyOptions = await loadProxySettings({ space });
   } catch (err) {
     logger.warn('Failed to load proxy options, using defaults', err);
   }

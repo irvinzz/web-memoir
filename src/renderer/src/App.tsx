@@ -16,6 +16,7 @@ import Tools from './components/Tools';
 import About from './components/About';
 import SpaceManager from './components/SpaceManager';
 import { useSpaces } from './hooks/use-spaces';
+import { useTranslation } from './localization/hook';
 
 function TabPanel(props: {
   children?: React.ReactNode;
@@ -31,6 +32,7 @@ function TabPanel(props: {
 }
 
 function App(): React.JSX.Element {
+  const { t } = useTranslation();
   const [tabIndex, setTabIndex] = useState(0);
 
   const { activeSpace, setActiveSpace, spaces, addSpace } = useSpaces();
@@ -50,6 +52,7 @@ function App(): React.JSX.Element {
       return;
     }
     await addSpace(newSpace);
+    await setActiveSpace(newSpace);
   };
 
   const theme = createTheme({

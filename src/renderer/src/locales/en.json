@@ -27,5 +27,5 @@
     "spaceNameCannotBeEmpty": "Space name cannot be empty",
     "spaceWithThisNameAlreadyExists": "Space with this name already exists",
     "searchSpaces": "Search spaces...",
-    "enterUniqueName": "Enter a unique name for the new space"
+    "enterUniqueName": "Enter a unique name"
 }

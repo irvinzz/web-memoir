@@ -1,52 +1,46 @@
 import { useCallback, useEffect, useState } from 'react';
 
-import { ProxyOptions } from '@shared';
-
-import { useHandleAsyncAction } from './handle-async-action';
+import { ProxySettings } from '@shared';
 
 export function useService(space: string): {
   enabled: boolean;
-  enableService: () => void;
-  disableService: () => void;
+  enableService: () => Promise<void>;
+  disableService: () => Promise<void>;
   describeInstance: () => Promise<{ port: number } | null>;
-  toggleOption: (input: Partial<ProxyOptions>) => void;
-  options: ProxyOptions;
+  toggleSettings: (input: Partial<ProxySettings>) => Promise<void>;
+  settings: ProxySettings;
 } {
-  const { handleAsyncAction } = useHandleAsyncAction();
-
   const [enabled, setEnabled] = useState<boolean>(false);
-  const [options, setOptions] = useState<ProxyOptions>({});
+  const [settings, setSettings] = useState<ProxySettings>({});
   const [catchedSpace, setCatchedSpace] = useState();
-  const [loadOptionsPromise, setLoadOptionsPromise] = useState<Promise<void>>();
+  const [loadSettingsPromise, setLoadSettingsPromise] = useState<Promise<void>>();
 
   useEffect(() => {
-    if (loadOptionsPromise && catchedSpace === space) return;
+    if (loadSettingsPromise && catchedSpace === space) return;
     setCatchedSpace(space);
-    setLoadOptionsPromise(
+    setLoadSettingsPromise(
       Promise.all([window.api.loadOptions(space), window.api.describeProxyInstance(space)]).then(
         ([loadedOptions, proxyInstance]) => {
-          setOptions(loadedOptions);
+          setSettings(loadedOptions);
           if (proxyInstance) {
             setEnabled(true);
           }
         }
       )
     );
-  }, [catchedSpace, loadOptionsPromise, options, space]);
+  }, [catchedSpace, loadSettingsPromise, settings, space]);
 
-  const toggleOption = useCallback(
-    async (changes: Partial<ProxyOptions>) => {
-      handleAsyncAction(async () => {
-        const newOptions: ProxyOptions = {
-          ...options,
-          ...changes,
-        };
-        await window.api.applyOptions(space, newOptions);
-        setOptions(newOptions);
-        setLoadOptionsPromise(undefined);
-      });
+  const toggleSettings = useCallback(
+    async (settingsChanges: Partial<ProxySettings>) => {
+      const newSettings: ProxySettings = {
+        ...settings,
+        ...settingsChanges,
+      };
+      await window.api.applyOptions(space, newSettings);
+      setSettings(newSettings);
+      setLoadSettingsPromise(undefined);
     },
-    [handleAsyncAction, options, space]
+    [settings, space]
   );
 
   useEffect(() => {
@@ -58,19 +52,15 @@ export function useService(space: string): {
     };
   }, [setEnabled]);
 
-  const enableService = useCallback(() => {
-    handleAsyncAction(async () => {
-      await window.api.startProxyInstance(space);
-      setEnabled(true);
-    });
-  }, [handleAsyncAction, space]);
+  const enableService = useCallback(async () => {
+    await window.api.startProxyInstance(space);
+    setEnabled(true);
+  }, [space]);
 
-  const disableService = useCallback(() => {
-    handleAsyncAction(async () => {
-      await window.api.stopProxyInstance(space);
-      setEnabled(false);
-    });
-  }, [handleAsyncAction, space]);
+  const disableService = useCallback(async () => {
+    await window.api.stopProxyInstance(space);
+    setEnabled(false);
+  }, [space]);
 
   return {
     enabled,
@@ -80,11 +70,7 @@ export function useService(space: string): {
       return window.api.describeProxyInstance(space);
     },
 
-    toggleOption: (input) => {
-      handleAsyncAction(async () => {
-        await toggleOption(input);
-      });
-    },
-    options,
+    toggleSettings,
+    settings,
   };
 }

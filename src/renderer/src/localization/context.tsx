@@ -1,3 +1,5 @@
 import { createContext } from 'react';
 
-export const TranslationContext = createContext<any>(null);
+import { TranslactionContextType } from './provider';
+
+export const TranslationContext = createContext<TranslactionContextType | null>(null);

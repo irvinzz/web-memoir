@@ -12,6 +12,8 @@ import {
 } from '@mui/material';
 import { Cloud, Add, Search } from '@mui/icons-material';
 import { Space } from '@shared';
+import { useTranslation } from '@renderer/localization/hook';
+import { useHandleAsyncAction } from '@renderer/hooks/handle-async-action';
 
 interface SpaceManagerProps {
   activeSpace: Space | undefined;
@@ -26,10 +28,13 @@ function SpaceManager({
   availableSpaces,
   onSpaceAdd,
 }: SpaceManagerProps): React.JSX.Element {
+  const { t } = useTranslation();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [newSpaceName, setNewSpaceName] = useState('');
   const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
+
+  const { handleAsyncAction } = useHandleAsyncAction();
 
   const handleOpenDialog = (): void => {
     setDialogOpen(true);
@@ -51,14 +56,15 @@ function SpaceManager({
   };
 
   const handleAddSpace = (): void => {
-    if (!newSpaceName.trim()) {
-      setError('Space name cannot be empty');
-      return;
-    }
+    handleAsyncAction(async () => {
+      if (!newSpaceName.trim()) {
+        setError('Space name cannot be empty');
+        return;
+      }
 
-    onSpaceAdd({ name: newSpaceName });
-    onSpaceChange(newSpaceName);
-    handleCloseDialog();
+      await onSpaceAdd({ name: newSpaceName });
+      handleCloseDialog();
+    });
   };
 
   const filteredSpaces = useMemo(() => {
@@ -89,7 +95,7 @@ function SpaceManager({
         >
           <Cloud sx={{ color: 'primary.main' }} />
           <Typography variant="body1" sx={{ fontWeight: 'medium' }}>
-            Space:
+            {t('space')}:
           </Typography>
           <Button variant="outlined" size="small" onClick={handleOpenDialog}>
             {activeSpace?.name}
@@ -98,34 +104,44 @@ function SpaceManager({
       </Box>
 
       <Dialog open={dialogOpen} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
-        <DialogTitle>Select or Create Space</DialogTitle>
+        <DialogTitle>{t('selectOrCreateSpace')}</DialogTitle>
         <DialogContent>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, mt: 0 }}>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
               <TextField
                 fullWidth
+                size="small"
                 variant="outlined"
-                placeholder="Search spaces..."
+                placeholder={t('searchSpaces')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <Search />
-                    </InputAdornment>
-                  ),
+                slotProps={{
+                  input: {
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <Search />
+                      </InputAdornment>
+                    ),
+                  },
                 }}
               />
             </Box>
 
-            <Typography variant="h6" sx={{ mb: 1 }}>
-              Available Spaces
-            </Typography>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+            <Typography sx={{ mb: 0 }}>{t('availableSpaces')}:</Typography>
+            <Box
+              sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 1,
+                maxHeight: '200px',
+                overflowY: 'auto',
+              }}
+            >
               {filteredSpaces.length > 0 ? (
                 filteredSpaces.map((space) => (
                   <Button
                     key={space.name}
+                    size="small"
                     variant={space === space ? 'contained' : 'outlined'}
                     onClick={() => handleSpaceSelect(space)}
                   >
@@ -135,29 +151,27 @@ function SpaceManager({
               ) : (
                 <Typography
                   variant="body2"
-                  sx={{ textAlign: 'center', py: 2, color: 'text.secondary' }}
+                  sx={{ textAlign: 'center', py: 1, color: 'text.secondary' }}
                 >
-                  No spaces found
+                  {t('noSpacesFound')}
                 </Typography>
               )}
             </Box>
 
-            <Box sx={{ pt: 2, borderTop: '1px solid #ccc' }}>
-              <Typography variant="h6" sx={{ mb: 1 }}>
-                Create New Space
-              </Typography>
+            <Box sx={{ pt: 1, borderTop: '1px solid #ccc' }}>
+              <Typography sx={{ mb: 0 }}>{t('createNewSpace')}</Typography>
               <Box sx={{ display: 'flex', gap: 1 }}>
                 <TextField
                   fullWidth
+                  size="small"
                   variant="outlined"
-                  placeholder="Enter space name"
+                  placeholder={t('enterUniqueName')}
                   value={newSpaceName}
                   onChange={(e) => {
                     setNewSpaceName(e.target.value);
                     if (error) setError('');
                   }}
                   error={!!error}
-                  helperText={error || 'Enter a unique name for the new space'}
                 />
                 <Button
                   variant="contained"
@@ -165,14 +179,14 @@ function SpaceManager({
                   startIcon={<Add />}
                   disabled={!newSpaceName.trim()}
                 >
-                  Add
+                  {t('add')}
                 </Button>
               </Box>
             </Box>
           </Box>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCloseDialog}>Close</Button>
+          <Button onClick={handleCloseDialog}>{t('close')}</Button>
         </DialogActions>
       </Dialog>
     </>

@@ -12,7 +12,7 @@ const translations = {
 };
 
 export interface TranslactionContextType {
-  t: (input: string) => string;
+  t: (input: keyof typeof en) => string;
 }
 
 export function TranslationProvider({

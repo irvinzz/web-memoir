@@ -1,12 +1,12 @@
 import { clipboard, contextBridge, ipcRenderer } from 'electron';
 import { electronAPI } from '@electron-toolkit/preload';
 
-import { Api, ProxyOptions, Space } from '../shared/Api';
+import { Api, ProxySettings, Space } from '../shared/Api';
 
 // Custom APIs for renderer
 const api: Api = {
   loadOptions: (space) => ipcRenderer.invoke('loadOptions', space),
-  applyOptions: (space, newOptions: ProxyOptions) =>
+  applyOptions: (space, newOptions: ProxySettings) =>
     ipcRenderer.invoke('applyOptions', space, newOptions),
   startProxyInstance: (space) => ipcRenderer.invoke('startProxyInstance', space),
   stopProxyInstance: (space) => ipcRenderer.invoke('stopProxyInstance', space),
@@ -22,6 +22,8 @@ const api: Api = {
   getSpaces: () => ipcRenderer.invoke('getSpaces'),
   addSpace: (newSpace: Space) => ipcRenderer.invoke('addSpace', newSpace),
   removeSpace: (space: Space) => ipcRenderer.invoke('removeSpace', space),
+
+  setActiveSpace: (space: Space) => ipcRenderer.invoke('setActiveSpace', space),
 };
 
 // Use `contextBridge` APIs to expose Electron APIs to

@@ -22,9 +22,11 @@ import SettingsIcon from '@mui/icons-material/Settings';
 import { useService } from '@renderer/hooks/use-service';
 import { useHandleAsyncAction } from '@renderer/hooks/handle-async-action';
 import { Space } from '@shared';
+import { useTranslation } from '@renderer/localization/hook';
 
 function Main(props: { space: Space }): React.JSX.Element {
   const { space } = props;
+  const { t } = useTranslation();
   const { handleAsyncAction } = useHandleAsyncAction();
   const [
     installCertificateConfirmationDialogVisible,
@@ -51,7 +53,7 @@ function Main(props: { space: Space }): React.JSX.Element {
     }
   };
 
-  const handleInstallCertificateCancel = (): void => {
+  const handleInstallCertificateCancel = async (): Promise<void> => {
     setInstallCertificateConfirmationDialogVisible(false);
   };
 
@@ -70,8 +72,8 @@ function Main(props: { space: Space }): React.JSX.Element {
     enableService,
     disableService,
     enabled: resolvedServiceEnabled,
-    options,
-    toggleOption,
+    settings,
+    toggleSettings,
     describeInstance,
   } = useService(space.name);
 
@@ -97,7 +99,9 @@ function Main(props: { space: Space }): React.JSX.Element {
             checked={resolvedServiceEnabled}
             color={resolvedServiceEnabled ? 'success' : 'error'}
             onChange={() => {
-              resolvedServiceEnabled ? disableService() : enableService();
+              handleAsyncAction(async () => {
+                await (resolvedServiceEnabled ? disableService() : enableService());
+              });
             }}
           />
         }
@@ -106,14 +110,16 @@ function Main(props: { space: Space }): React.JSX.Element {
       <FormControlLabel
         control={
           <Switch
-            checked={options.offline}
-            color={options.offline ? 'error' : 'default'}
+            checked={settings.offline}
+            color={settings.offline ? 'error' : 'default'}
             onChange={(e) => {
-              toggleOption({ offline: e.target.checked });
+              handleAsyncAction(async () => {
+                await toggleSettings({ offline: e.target.checked });
+              });
             }}
           />
         }
-        label={options.offline ? 'Offline Mode enabled' : 'Offline Mode disabled'}
+        label={settings.offline ? t('offlineModeEnabled') : t('offlineModeDisabled')}
       />
       <ButtonGroup variant="contained">
         <Button
@@ -126,7 +132,7 @@ function Main(props: { space: Space }): React.JSX.Element {
             });
           }}
         >
-          Launch Browser
+          {t('launchBrowser')}
         </Button>
         <Button color="info" disabled={!resolvedServiceEnabled}>
           <SettingsIcon
@@ -151,7 +157,7 @@ function Main(props: { space: Space }): React.JSX.Element {
             <Stack spacing={2}>
               <Stack spacing={1}>
                 <Typography variant="body1" fontWeight="medium">
-                  Step 1. Install Certificate
+                  {t('step1InstallCertificate')}
                 </Typography>
                 <Button
                   type="button"
@@ -163,13 +169,13 @@ function Main(props: { space: Space }): React.JSX.Element {
                     });
                   }}
                 >
-                  Browse Certificate
+                  {t('browseCertificate')}
                 </Button>
               </Stack>
 
               <Stack spacing={1}>
                 <Typography variant="body1" fontWeight="medium">
-                  Step 2. Set HTTPS Proxy
+                  {t('step2SetHttpsProxy')}
                 </Typography>
                 <TextField
                   variant="outlined"
@@ -199,7 +205,7 @@ function Main(props: { space: Space }): React.JSX.Element {
               setManualLaunchDialogVisible(null);
             }}
           >
-            Close
+            {t('close')}
           </Button>
         </DialogActions>
       </Dialog>
@@ -210,16 +216,16 @@ function Main(props: { space: Space }): React.JSX.Element {
           //
         }}
       >
-        <DialogTitle>Certificate missing</DialogTitle>
+        <DialogTitle>{t('certificateMissing')}</DialogTitle>
         <DialogContent>
-          <DialogContentText>
-            Let&apos;s install application ssl certificate to your browser.
-          </DialogContentText>
+          <DialogContentText>{t('letsInstallCertificate')}</DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleInstallCertificateCancel}>Cancel</Button>
-          <Button onClick={handleInstallCertificeAgree} autoFocus>
-            Agree
+          <Button onClick={() => handleAsyncAction(() => handleInstallCertificateCancel())}>
+            {t('cancel')}
+          </Button>
+          <Button onClick={() => handleAsyncAction(() => handleInstallCertificeAgree())} autoFocus>
+            {t('agree')}
           </Button>
         </DialogActions>
       </Dialog>
