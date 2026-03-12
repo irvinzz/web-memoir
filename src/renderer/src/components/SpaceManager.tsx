@@ -11,7 +11,7 @@ import {
   InputAdornment,
 } from '@mui/material';
 import { Cloud, Add, Search } from '@mui/icons-material';
-import { Space } from '@shared';
+import { isValidSpaceName, Space } from '@shared';
 import { useTranslation } from '@renderer/localization/hook';
 import { useHandleAsyncAction } from '@renderer/hooks/handle-async-action';
 
@@ -57,8 +57,8 @@ function SpaceManager({
 
   const handleAddSpace = (): void => {
     handleAsyncAction(async () => {
-      if (!newSpaceName.trim()) {
-        setError('Space name cannot be empty');
+      if (!isValidSpaceName(newSpaceName)) {
+        setError('only chars, numbers and dash allowed');
         return;
       }
 
@@ -172,6 +172,7 @@ function SpaceManager({
                     if (error) setError('');
                   }}
                   error={!!error}
+                  helperText={error}
                 />
                 <Button
                   variant="contained"

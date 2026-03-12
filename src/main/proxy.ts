@@ -2,12 +2,13 @@ import { join } from 'node:path';
 import { ChildProcess, fork } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
 
+import { DBNamePrefix } from '@shared';
+
 import { resourcesDir } from './const';
 import { caCrtPath, caKeyPath, createRootCA } from './cert-ca';
 import { createLogger } from './logger';
 import { ProxySettings } from '../shared/Api';
 import { loadProxySettings } from './settings';
-import { DBNamePrefix } from './spaces';
 
 const logger = createLogger('proxy');
 
@@ -22,11 +23,11 @@ export async function startProxy(options: ProxyStartOptions): Promise<ChildProce
   const { dbUrl, space, port, onClose } = options;
   await createRootCA();
 
-  const proxyBundleFilePath = join(resourcesDir, 'test.js');
+  const proxyBundleFilePath = join(resourcesDir, 'proxy.bundle.js');
 
   let proxyOptions: ProxySettings = {};
   try {
-    proxyOptions = await loadProxySettings({ space });
+    proxyOptions = await loadProxySettings(space);
   } catch (err) {
     logger.warn('Failed to load proxy options, using defaults', err);
   }
@@ -39,9 +40,7 @@ export async function startProxy(options: ProxyStartOptions): Promise<ChildProce
     SELF_ADDRESS: `http://localhost:${port}`,
     RCPWD: randomUUID(),
     FETCH_TIMEOUT: '1000',
-    UPSTREAM_PROXY: proxyOptions?.useUpstreamProxy
-      ? proxyOptions.upstreamProxyAddress
-      : undefined,
+    UPSTREAM_PROXY: proxyOptions?.useUpstreamProxy ? proxyOptions.upstreamProxyAddress : undefined,
     APP_VERSION: 'wip',
     CA_KEY_PATH: caKeyPath,
     CA_CRT_PATH: caCrtPath,

@@ -7,6 +7,7 @@ import { kill } from 'node:process';
 
 import { app } from 'electron';
 import getPort from 'get-port';
+import waitPort from 'wait-port';
 
 import { resourcesDir } from './const';
 import { createLogger } from './logger';
@@ -56,11 +57,7 @@ async function startDBInstance({
   const binName = osPlatform() === 'win32' ? 'mongod.exe' : 'mongod';
   const binPath = join(mongoDir, manifest!.binDir, binName);
 
-  const dataPath = join(
-    app.getPath('appData'),
-    'offline-internet',
-    'mongodb-data'
-  );
+  const dataPath = join(app.getPath('appData'), 'offline-internet', 'mongodb-data');
 
   await mkdir(dataPath, { recursive: true });
 
@@ -109,6 +106,11 @@ async function startDBInstance({
   });
 
   dbChildProcess = process;
+
+  await waitPort({
+    port: listenPort,
+    output: 'silent',
+  });
 
   return { port: listenPort, process: dbChildProcess };
 }

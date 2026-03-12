@@ -3,11 +3,12 @@ import { join } from 'node:path';
 
 import { app } from 'electron';
 
+import { DBNamePrefix } from '@shared';
+
 import { getCertificateManager } from './cert';
 import { caCrtPath } from './cert-ca';
 import { importPlaywright } from './playwright';
 import { stopProcess } from './process';
-import { DBNamePrefix } from './spaces';
 
 export const certManager = getCertificateManager(caCrtPath);
 

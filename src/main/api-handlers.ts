@@ -43,10 +43,10 @@ handleApiEvent('stopProxyInstance', async (_event, space) => {
 
 handleApiEvent('runCrawler', async (_event, space, startUrl, options) => {
   const proxyInstance = getProxyInstance(space);
+  if (!proxyInstance) throw new Error(`Proxy instance stopped`);
   await crawlWebsite({
     startUrl,
-    progressFile: join(app.getPath('userData'), 'crawl-progress.json'),
-    // proxyUrl: options.,
+    proxyUrl: `https://localhost:${proxyInstance.port}`,
     progressCallback(state) {
       //
     },

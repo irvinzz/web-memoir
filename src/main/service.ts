@@ -2,6 +2,7 @@ import { ChildProcess } from 'node:child_process';
 
 import { app } from 'electron';
 import getPort from 'get-port';
+import waitPort from 'wait-port';
 
 import { ProxySettings } from '../shared/Api';
 import { getDBInstance, getRunningDBInstance } from './db';
@@ -37,13 +38,19 @@ export async function startProxyInstance(options: { space: string }): Promise<vo
     space: space,
     port: proxyPort,
     onClose(code) {
-      //
+      proxyInstances.delete(options.space);
     },
   });
   proxyInstances.set(options.space, {
     process: proxyInstance,
     port: proxyPort,
   });
+
+  await waitPort({
+    port: proxyPort,
+    output: 'silent',
+  });
+
   logger.info('Service started successfully');
 }
 
