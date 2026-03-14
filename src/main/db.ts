@@ -11,6 +11,7 @@ import waitPort from 'wait-port';
 
 import { resourcesDir } from './const';
 import { createLogger } from './logger';
+import { waitProcessPort } from './process';
 
 const logger = createLogger('mongod');
 interface StartDBOptions {
@@ -80,7 +81,7 @@ async function startDBInstance({
     '--bind_ip',
     '127.0.0.1',
     `--port=${listenPort}`,
-    '--auth',
+    // '--auth',
     `--wiredTigerCacheSizeGB=${cacheSizeGB}`,
     '--quiet',
   ];
@@ -91,6 +92,8 @@ async function startDBInstance({
 
   process.stdout?.on('data', (msg) => logger.debug(msg.toString()));
   process.stderr?.on('data', (msg) => logger.error(msg.toString()));
+
+  await waitProcessPort(process, listenPort);
 
   process.on('close', (code) => {
     logger.info(`MongoDB exited with code ${code}`);
@@ -109,6 +112,7 @@ async function startDBInstance({
 
   await waitPort({
     port: listenPort,
+    timeout: 30000,
     output: 'silent',
   });
 

@@ -26,15 +26,15 @@ function handleApiEvent<K extends keyof Api>(name: K, handler: ToHandler<Api[K]>
 }
 
 handleApiEvent('loadOptions', async (_event, space) => {
-  return await loadProxySettings(space);
+  return loadProxySettings(space);
 });
 
 handleApiEvent('applyOptions', async (_event, space, newSettings) => {
-  await applyProxySettings({ space }, newSettings);
+  return applyProxySettings({ space }, newSettings);
 });
 
 handleApiEvent('startProxyInstance', async (_event, space) => {
-  await startProxyInstance({ space });
+  return startProxyInstance({ space });
 });
 
 handleApiEvent('stopProxyInstance', async (_event, space) => {
@@ -108,6 +108,9 @@ handleApiEvent('inspect', async () => {
     getPath: {
       assets: app.getPath('assets'),
       userData: app.getPath('userData'),
+    },
+    env: {
+      UPSTREAM_PROXY: process['UPSTREAM_PROXY'],
     },
   };
 });

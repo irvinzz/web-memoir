@@ -2,13 +2,14 @@ import { join } from 'node:path';
 import { ChildProcess, fork } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
 
-import { DBNamePrefix } from '@shared';
+import { transformSpaceNameToDBName } from '@shared';
 
 import { resourcesDir } from './const';
 import { caCrtPath, caKeyPath, createRootCA } from './cert-ca';
 import { createLogger } from './logger';
 import { ProxySettings } from '../shared/Api';
 import { loadProxySettings } from './settings';
+import { waitProcessPort } from './process';
 
 const logger = createLogger('proxy');
 
@@ -20,7 +21,7 @@ export interface ProxyStartOptions {
 }
 
 export async function startProxy(options: ProxyStartOptions): Promise<ChildProcess> {
-  const { dbUrl, space, port, onClose } = options;
+  const { dbUrl, space, port, onClose: onCloseOption } = options;
   await createRootCA();
 
   const proxyBundleFilePath = join(resourcesDir, 'proxy.bundle.js');
@@ -35,8 +36,10 @@ export async function startProxy(options: ProxyStartOptions): Promise<ChildProce
   const boolToEnv = (input?: boolean): string => (input ? '1' : '');
 
   const env = {
+    PORT: port.toString(),
+    HOST: '127.0.0.1',
     DB_URL: dbUrl,
-    DB_NAME: `${DBNamePrefix}${space}`,
+    DB_NAME: transformSpaceNameToDBName(space),
     SELF_ADDRESS: `http://localhost:${port}`,
     RCPWD: randomUUID(),
     FETCH_TIMEOUT: '1000',
@@ -51,7 +54,7 @@ export async function startProxy(options: ProxyStartOptions): Promise<ChildProce
 
   const proxyChildProcess = fork(proxyBundleFilePath, {
     env,
-    stdio: 'ignore',
+    stdio: 'pipe',
   });
 
   proxyChildProcess.stdout?.on('data', (msg) => {
@@ -66,16 +69,13 @@ export async function startProxy(options: ProxyStartOptions): Promise<ChildProce
     logger.error('Proxy process error', err);
   });
 
-  proxyChildProcess.on('close', (code) => {
-    logger.info(`Proxy exited with code ${code}`);
-    onClose(code);
-  });
-
   proxyChildProcess.on('message', (msg) => {
     logger.debug('child->parent', msg);
   });
 
   logger.info('Proxy started');
+
+  await waitProcessPort(proxyChildProcess, port);
 
   return proxyChildProcess;
 }

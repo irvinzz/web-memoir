@@ -2,6 +2,6 @@
 
 set -euo pipefail
 
-bash ./scripts/install-crawlee.sh
+bash ./scripts/install-playwright-chromium.sh
 node ./scripts/install-mongodb.js
 

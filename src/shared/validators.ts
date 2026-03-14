@@ -1,22 +1,14 @@
-
 const MAXMongoDBNameLength = 63 as const;
 export const DBNamePrefix = 'io-' as const;
 
-export function isValidSpaceName(dbName: string): boolean {
-  if (!dbName || dbName.length > MAXMongoDBNameLength - DBNamePrefix.length) {
-    return false;
-  }
+export function transformSpaceNameToDBName(input: string): string {
+  return DBNamePrefix + input.replace(/\./g, '_dot_');
+}
 
-  if (dbName.startsWith('.') || dbName.endsWith('.')) {
-    return false;
-  }
-
-  if (dbName.includes('..')) {
-    return false;
-  }
-
-  const reservedNames = new Set(['admin', 'local', 'config']);
-  if (reservedNames.has(dbName.toLowerCase())) {
+export function isValidSpaceName(spaceName: string): boolean {
+  if (!spaceName) return false;
+  const dbName = transformSpaceNameToDBName(spaceName);
+  if (dbName.length > MAXMongoDBNameLength - DBNamePrefix.length) {
     return false;
   }
 
