@@ -19,11 +19,13 @@ const api: Api = {
     ipcRenderer.invoke('runCrawler', space, startUrl, options),
   putToClipboard: async (input) => clipboard.writeText(input),
   inspect: () => ipcRenderer.invoke('inspect'),
+
   getSpaces: () => ipcRenderer.invoke('getSpaces'),
   addSpace: (newSpace: Space) => ipcRenderer.invoke('addSpace', newSpace),
   removeSpace: (space: Space) => ipcRenderer.invoke('removeSpace', space),
-
   setActiveSpace: (space: Space) => ipcRenderer.invoke('setActiveSpace', space),
+  exportSpace: (spaceName: string) => ipcRenderer.invoke('exportSpace', spaceName),
+  importSpace: (spaceName: string) => ipcRenderer.invoke('importSpace', spaceName),
 };
 
 // Use `contextBridge` APIs to expose Electron APIs to

@@ -41,6 +41,8 @@ export interface Api {
   addSpace: (newSpace: Space) => Promise<void>;
   removeSpace: (space: Space) => Promise<void>;
   setActiveSpace: (space: Space) => Promise<void>;
+  exportSpace: (spaceName: string) => Promise<void>;
+  importSpace: (spaceName: string) => Promise<void>;
 }
 
 export type ProxySettings = {

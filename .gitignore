@@ -1,5 +1,6 @@
 resources/mongodb
 resources/playwright-cache
+resources/mongodb-tools
 node_modules
 dist
 out

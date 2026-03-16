@@ -75,7 +75,7 @@ async function startDBInstance({
     }
   }
 
-  listenPort = await getPort({ port: 27017 });
+  listenPort = await getPort({ port: [27017, 40035] });
   const args = [
     `--dbpath=${dataPath}`,
     '--bind_ip',

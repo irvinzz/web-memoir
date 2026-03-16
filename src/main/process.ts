@@ -1,5 +1,7 @@
-import { ChildProcess } from 'node:child_process';
+import { ChildProcess, spawn } from 'node:child_process';
 import waitPort from 'wait-port';
+
+import { createLogger } from './logger';
 
 export async function stopProcess(childProcess: ChildProcess): Promise<void> {
   return new Promise<void>((resolve) => {
@@ -56,5 +58,28 @@ export async function waitProcessPort(process: ChildProcess, port: number): Prom
       process.stderr?.removeListener('data', onOutputData);
       return process;
     })().then(resolve);
+  });
+}
+
+export async function spawnAsync(command: string, args: string[], title: string): Promise<void> {
+  return new Promise<void>((resolve, reject) => {
+    const process = spawn(command, args, {
+      stdio: 'pipe',
+    });
+
+    const logger = createLogger(title);
+
+    process.stdout.on('data', (chunk) => {
+      logger.debug('out', chunk.toString());
+    });
+
+    process.stderr.on('data', (chunk) => {
+      logger.error('err', chunk.toString());
+    });
+
+    process.on('exit', (code) => {
+      if (code !== 0) return reject(`${title} exited with code ${code}`);
+      resolve();
+    });
   });
 }

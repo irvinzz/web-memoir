@@ -1,5 +1,3 @@
-import { join } from 'node:path';
-
 import { app, ipcMain, IpcMainInvokeEvent, shell } from 'electron';
 
 import {
@@ -14,7 +12,15 @@ import { loadProxySettings } from './settings';
 import { caPath } from './cert-ca';
 import { resourcesDir } from './const';
 import { crawlWebsite } from './web-crawler';
-import { addSpace, getSpacesSettings, removeSpace, setActiveSpace } from './spaces';
+import {
+  addSpace,
+  exportSpace,
+  getSpacesSettings,
+  importSpace,
+  removeSpace,
+  setActiveSpace,
+} from './spaces';
+import { mainWindow } from './index';
 
 type ToHandler<T extends (...args: any[]) => Promise<any>> = (
   _event: IpcMainInvokeEvent,
@@ -129,4 +135,12 @@ handleApiEvent('removeSpace', async (_event, space) => {
 
 handleApiEvent('setActiveSpace', async (_event, space) => {
   return setActiveSpace(space);
+});
+
+handleApiEvent('exportSpace', async (_event, spaceName) => {
+  return exportSpace(mainWindow!, spaceName);
+});
+
+handleApiEvent('importSpace', async (_event, spaceName) => {
+  return importSpace(mainWindow!, spaceName);
 });
