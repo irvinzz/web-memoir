@@ -6,6 +6,8 @@ export interface IPCResponse<CODES extends string> {
 
 export interface Space {
   name: string;
+  private: boolean;
+  startPage?: string;
 }
 
 export interface SpacesSettings {
@@ -42,7 +44,7 @@ export interface Api {
   removeSpace: (space: Space) => Promise<void>;
   setActiveSpace: (space: Space) => Promise<void>;
   exportSpace: (spaceName: string) => Promise<void>;
-  importSpace: (spaceName: string) => Promise<void>;
+  importSpace: () => Promise<void>;
 }
 
 export type ProxySettings = {

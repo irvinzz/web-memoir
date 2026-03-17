@@ -45,26 +45,6 @@ function Tools(props: { space: Space }): React.JSX.Element {
       >
         {t('crawl')}
       </Button>
-      <Button
-        variant="outlined"
-        onClick={() => {
-          handleAsyncAction(async () => {
-            await window.api.exportSpace(space.name);
-          });
-        }}
-      >
-        Export space
-      </Button>
-      <Button
-        variant="outlined"
-        onClick={() => {
-          handleAsyncAction(async () => {
-            await window.api.importSpace(space.name);
-          });
-        }}
-      >
-        Import space
-      </Button>
       <Dialog open={crawlDialogVisible}>
         <DialogTitle>{t('crawler')}</DialogTitle>
         <DialogContent>

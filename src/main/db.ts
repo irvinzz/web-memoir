@@ -7,17 +7,12 @@ import { kill } from 'node:process';
 
 import { app } from 'electron';
 import getPort from 'get-port';
-import waitPort from 'wait-port';
 
 import { resourcesDir } from './const';
 import { createLogger } from './logger';
 import { waitProcessPort } from './process';
 
 const logger = createLogger('mongod');
-interface StartDBOptions {
-  cacheSizeGB?: number;
-  onClose(code: number | null): void;
-}
 
 let dbChildProcess: ChildProcess | null = null;
 let listenPort: number | null = null;
@@ -35,14 +30,11 @@ export function getRunningDBInstance(): DBInstance | null {
   return null;
 }
 
-export async function getDBInstance(options: StartDBOptions): Promise<DBInstance> {
-  return getRunningDBInstance() || startDBInstance(options);
+export async function getDBInstance(): Promise<DBInstance> {
+  return getRunningDBInstance() || startDBInstance();
 }
 
-async function startDBInstance({
-  cacheSizeGB = 1,
-  onClose,
-}: StartDBOptions): Promise<{ port: number; process: ChildProcess }> {
+async function startDBInstance(): Promise<{ port: number; process: ChildProcess }> {
   const mongoDir = join(resourcesDir, 'mongodb');
   const instancePath = join(mongoDir, 'instance.json');
 
@@ -82,7 +74,7 @@ async function startDBInstance({
     '127.0.0.1',
     `--port=${listenPort}`,
     // '--auth',
-    `--wiredTigerCacheSizeGB=${cacheSizeGB}`,
+    `--wiredTigerCacheSizeGB=${1}`,
     '--quiet',
   ];
 
@@ -99,7 +91,6 @@ async function startDBInstance({
     logger.info(`MongoDB exited with code ${code}`);
     dbChildProcess = null;
     listenPort = null;
-    onClose(code);
   });
 
   process.on('error', (err) => {
@@ -110,11 +101,7 @@ async function startDBInstance({
 
   dbChildProcess = process;
 
-  await waitPort({
-    port: listenPort,
-    timeout: 30000,
-    output: 'silent',
-  });
+  await waitProcessPort(dbChildProcess, listenPort);
 
   return { port: listenPort, process: dbChildProcess };
 }

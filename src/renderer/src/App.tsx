@@ -35,7 +35,7 @@ function App(): React.JSX.Element {
   const { t } = useTranslation();
   const [tabIndex, setTabIndex] = useState(0);
 
-  const { activeSpace, setActiveSpace, spaces, addSpace } = useSpaces();
+  const { activeSpace, setActiveSpace, spaces, addSpace, removeSpace, importSpace } = useSpaces();
 
   const handleTabChange = (_: React.SyntheticEvent, newValue: number): void => {
     setTabIndex(newValue);
@@ -73,6 +73,8 @@ function App(): React.JSX.Element {
               onSpaceChange={handleSpaceChange}
               availableSpaces={spaces}
               onSpaceAdd={handleAddSpace}
+              onSpaceRemove={(space) => removeSpace(space)}
+              onImportSpace={() => importSpace()}
             />
             <Tabs value={tabIndex} onChange={handleTabChange}>
               <Tab label="Main" icon={<CloudOffIcon />} iconPosition="start" />

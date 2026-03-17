@@ -21,7 +21,7 @@ export function TranslationProvider({
   children: React.ReactNode;
 }): React.JSX.Element {
   const [locale, setLocale] = useState('en');
-  const t = (key: string): string => translations[locale][key];
+  const t = (key: string): string => translations[locale][key] || key;
 
   return <TranslationContext.Provider value={{ t }}>{children}</TranslationContext.Provider>;
 }

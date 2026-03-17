@@ -8,7 +8,7 @@ import { create as createTar, extract as extractTar } from 'tar';
 import { transformSpaceNameToDBName } from '@shared';
 
 import { Space, SpacesSettings } from '../shared/Api';
-import { getRunningDBInstance } from './db';
+import { getDBInstance } from './db';
 import { resourcesDir } from './const';
 import { spawnAsync } from './process';
 
@@ -26,6 +26,7 @@ export async function getSpacesSettings(): Promise<SpacesSettings> {
       spaces: [
         {
           name: 'default',
+          private: false,
         },
       ],
     };
@@ -72,8 +73,7 @@ export async function exportSpace(mainWindow: BrowserWindow, spaceName: string):
   });
   const destinationFolder = result.filePaths[0];
   if (!destinationFolder) return;
-  const dbInfo = getRunningDBInstance();
-  if (!dbInfo) throw new Error('DB is not running');
+  const dbInfo = await getDBInstance();
   await runInTmpFolder(async (dumpTmpPath) => {
     await spawnAsync(
       join(resourcesDir, 'mongodb-tools', 'bin', 'mongodump'),
@@ -115,15 +115,14 @@ export async function exportSpace(mainWindow: BrowserWindow, spaceName: string):
   });
 }
 
-export async function importSpace(mainWindow: BrowserWindow, spaceName: string): Promise<void> {
-  const dbInfo = getRunningDBInstance();
-  if (!dbInfo) throw new Error('DB is not running');
+export async function importSpace(mainWindow: BrowserWindow): Promise<void> {
+  const dbInfo = await getDBInstance();
   const result = await dialog.showOpenDialog(mainWindow, {
     properties: ['openFile'],
     filters: [
       {
         name: 'App archive',
-        extensions: ['gz'],
+        extensions: ['wmb.tar.gz'],
       },
     ],
   });
@@ -136,19 +135,36 @@ export async function importSpace(mainWindow: BrowserWindow, spaceName: string):
       file: firstSelection,
       cwd: tmpDir,
     });
-    console.dir(await readdir(tmpDir));
     const spaceManifest = JSON.parse(await readFile(join(tmpDir, 'space.json'), 'utf-8'));
-    // 
 
-    await spawnAsync(
-      join(resourcesDir, 'mongodb-tools', 'bin', 'mongorestore'),
-      [
-        '--port', String(dbInfo?.port),
-        '--db', transformSpaceNameToDBName('import-test'),
-        join(tmpDir, transformSpaceNameToDBName(spaceManifest.name)),
-      ],
-      'mongorestore'
-    );
+    await addSpace({
+      name: spaceManifest.name,
+      private: true,
+    });
+
+    const filesList = await readdir(tmpDir);
+    if (filesList.includes(transformSpaceNameToDBName(spaceManifest.name))) {
+      try {
+        await spawnAsync(
+          join(resourcesDir, 'mongodb-tools', 'bin', 'mongorestore'),
+          [
+            '--port',
+            String(dbInfo?.port),
+            '--db',
+            transformSpaceNameToDBName('import-test'),
+            join(tmpDir, transformSpaceNameToDBName(spaceManifest.name)),
+          ],
+          'mongorestore'
+        );
+      } catch (e) {
+        await removeSpace({
+          name: spaceManifest.name,
+          private: true,
+        });
+
+        throw e;
+      }
+    }
   });
 }
 

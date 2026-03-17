@@ -7,6 +7,7 @@ export function useSpaces(): {
   spaces: Space[];
   addSpace: (newSpace: Space) => Promise<void>;
   removeSpace: (space: Space) => Promise<void>;
+  importSpace: () => Promise<void>;
 } {
   const [spacesSettings, setSpacesSettings] = useState<SpacesSettings>();
   const [fetchOperation, setFetchOperation] = useState<Promise<void>>();
@@ -38,6 +39,10 @@ export function useSpaces(): {
     },
     removeSpace: async (space) => {
       await window.api.removeSpace(space);
+      setFetchOperation(undefined);
+    },
+    importSpace: async () => {
+      await window.api.importSpace();
       setFetchOperation(undefined);
     },
   };

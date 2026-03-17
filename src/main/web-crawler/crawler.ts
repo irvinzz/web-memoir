@@ -1,10 +1,15 @@
+import { ProxyConfiguration } from 'crawlee';
+
 import { importCrawlee, importPlaywright } from '../playwright';
+import { createLogger } from '../logger';
 
 export interface CrawlOptions {
   startUrl: string;
   proxyUrl: string;
   progressCallback?: (state: { visited: number; pending: number }) => void;
 }
+
+const logger = createLogger('crawler');
 
 export async function crawlWebsite(opts: CrawlOptions): Promise<void> {
   const { PlaywrightCrawler, RequestQueue } = importCrawlee();
@@ -21,8 +26,10 @@ export async function crawlWebsite(opts: CrawlOptions): Promise<void> {
     headless: false,
     launchContext: {
       launcher: chromium,
-      proxyUrl: opts.proxyUrl,
     },
+    proxyConfiguration: new ProxyConfiguration({
+      proxyUrls: [opts.proxyUrl],
+    }),
     maxRequestsPerCrawl: Number.MAX_SAFE_INTEGER,
     async requestHandler(context) {
       const { request, enqueueLinks } = context;
@@ -50,8 +57,8 @@ export async function crawlWebsite(opts: CrawlOptions): Promise<void> {
       // }
     },
 
-    failedRequestHandler({ request, log }) {
-      log.error(`Failed to fetch ${request.url}`);
+    failedRequestHandler({ request }) {
+      logger.error(`Failed to fetch ${request.url}`);
     },
   });
 

@@ -52,7 +52,7 @@ handleApiEvent('runCrawler', async (_event, space, startUrl, options) => {
   if (!proxyInstance) throw new Error(`Proxy instance stopped`);
   await crawlWebsite({
     startUrl,
-    proxyUrl: `https://localhost:${proxyInstance.port}`,
+    proxyUrl: `http://localhost:${proxyInstance.port}`,
     progressCallback(state) {
       //
     },
@@ -141,6 +141,6 @@ handleApiEvent('exportSpace', async (_event, spaceName) => {
   return exportSpace(mainWindow!, spaceName);
 });
 
-handleApiEvent('importSpace', async (_event, spaceName) => {
-  return importSpace(mainWindow!, spaceName);
+handleApiEvent('importSpace', async () => {
+  return importSpace(mainWindow!);
 });

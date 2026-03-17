@@ -9,8 +9,16 @@ import {
   Typography,
   TextField,
   InputAdornment,
+  ButtonGroup,
 } from '@mui/material';
-import { Cloud, Add, Search } from '@mui/icons-material';
+import {
+  Cloud,
+  Add,
+  Search,
+  SaveAltTwoTone,
+  UploadFileTwoTone,
+  DeleteForeverOutlined,
+} from '@mui/icons-material';
 import { isValidSpaceName, Space } from '@shared';
 import { useTranslation } from '@renderer/localization/hook';
 import { useHandleAsyncAction } from '@renderer/hooks/handle-async-action';
@@ -20,6 +28,8 @@ interface SpaceManagerProps {
   onSpaceChange: (spaceName: string) => void;
   availableSpaces: Space[];
   onSpaceAdd: (newSpace: Space) => Promise<void>;
+  onSpaceRemove: (newSpace: Space) => Promise<void>;
+  onImportSpace: () => Promise<void>;
 }
 
 function SpaceManager({
@@ -27,6 +37,8 @@ function SpaceManager({
   onSpaceChange,
   availableSpaces,
   onSpaceAdd,
+  onSpaceRemove,
+  onImportSpace,
 }: SpaceManagerProps): React.JSX.Element {
   const { t } = useTranslation();
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -34,7 +46,7 @@ function SpaceManager({
   const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
 
-  const { handleAsyncAction } = useHandleAsyncAction();
+  const { handleAsyncAction, confirm } = useHandleAsyncAction();
 
   const handleOpenDialog = (): void => {
     setDialogOpen(true);
@@ -62,7 +74,7 @@ function SpaceManager({
         return;
       }
 
-      await onSpaceAdd({ name: newSpaceName });
+      await onSpaceAdd({ name: newSpaceName, private: false });
       handleCloseDialog();
     });
   };
@@ -73,6 +85,12 @@ function SpaceManager({
       space.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [availableSpaces, searchTerm]);
+
+  const onSaveSpace = (space: Space): void => {
+    handleAsyncAction(async () => {
+      await window.api.exportSpace(space.name);
+    });
+  };
 
   return (
     <>
@@ -139,14 +157,47 @@ function SpaceManager({
             >
               {filteredSpaces.length > 0 ? (
                 filteredSpaces.map((space) => (
-                  <Button
-                    key={space.name}
-                    size="small"
-                    variant={space === space ? 'contained' : 'outlined'}
-                    onClick={() => handleSpaceSelect(space)}
-                  >
-                    {space.name}
-                  </Button>
+                  <>
+                    <ButtonGroup fullWidth>
+                      <Button
+                        sx={{ flex: 8 }}
+                        key={space.name}
+                        size="small"
+                        variant={space === space ? 'contained' : 'outlined'}
+                        onClick={() => handleSpaceSelect(space)}
+                      >
+                        {space.name}
+                      </Button>
+                      <Button
+                        sx={{ flex: 1 }}
+                        size="small"
+                        onClick={() => onSaveSpace(space)}
+                        disabled={space.private}
+                        title={t('exportSpace')}
+                      >
+                        <SaveAltTwoTone />
+                      </Button>
+                      <Button
+                        sx={{ flex: 1 }}
+                        size="small"
+                        title={t('deleteSpace')}
+                        onClick={() => {
+                          handleAsyncAction(async () => {
+                            const answer = await confirm();
+                            if (answer === 'NO') {
+                              return;
+                            } else if (answer === 'YES') {
+                              await onSpaceRemove(space);
+                            } else {
+                              throw new Error(`Invalid answer ${answer}`);
+                            }
+                          });
+                        }}
+                      >
+                        <DeleteForeverOutlined />
+                      </Button>
+                    </ButtonGroup>
+                  </>
                 ))
               ) : (
                 <Typography
@@ -158,7 +209,7 @@ function SpaceManager({
               )}
             </Box>
 
-            <Box sx={{ pt: 1, borderTop: '1px solid #ccc' }}>
+            <Box sx={{ pt: 1, gap: 2, borderTop: '1px solid #ccc' }}>
               <Typography sx={{ mb: 0 }}>{t('createNewSpace')}</Typography>
               <Box sx={{ display: 'flex', gap: 1 }}>
                 <TextField
@@ -181,6 +232,23 @@ function SpaceManager({
                   disabled={!newSpaceName.trim()}
                 >
                   {t('add')}
+                </Button>
+              </Box>
+            </Box>
+            <Box sx={{ pt: 1, gap: 2, borderTop: '1px solid #ccc' }}>
+              <Typography sx={{ mb: 0 }}>{t('importNewSpace')}</Typography>
+              <Box sx={{ display: 'flex' }}>
+                <Button
+                  fullWidth
+                  variant="contained"
+                  startIcon={<UploadFileTwoTone />}
+                  onClick={() =>
+                    handleAsyncAction(async () => {
+                      await onImportSpace();
+                    })
+                  }
+                >
+                  Import
                 </Button>
               </Box>
             </Box>
