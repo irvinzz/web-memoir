@@ -14,7 +14,7 @@
     "start": "electron-vite preview",
     "dev": "electron-vite dev",
     "build": "npm run typecheck && electron-vite build",
-    "postinstall": "electron-builder install-app-deps && scripts/postinstall.sh",
+    "postinstall": "electron-builder install-app-deps && bash scripts/postinstall.sh",
     "build:unpack": "npm run build && electron-builder --dir",
     "build:win": "npm run build && electron-builder --win",
     "build:mac": "electron-vite build && electron-builder --mac",
@@ -29,11 +29,12 @@
     "crawlee": "^3.16.0",
     "electron-updater": "^6.3.9",
     "get-port": "^7.1.0",
+    "iconv-lite": "^0.7.2",
     "mongodb": "^7.1.0",
     "node-forge": "^1.3.3",
+    "pem": "^1.14.8",
     "playwright": "^1.58.2",
-    "tar": "^7.5.11",
-    "webtorrent": "^2.8.5"
+    "tar": "^7.5.11"
   },
   "devDependencies": {
     "@electron-toolkit/eslint-config-prettier": "^3.0.0",

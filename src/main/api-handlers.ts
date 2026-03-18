@@ -78,8 +78,8 @@ handleApiEvent(
     console.debug('certificateCheckResult', certificateCheckResult);
     if (certificateCheckResult.code !== 'OK') {
       return {
-        ...certificateCheckResult,
         message: 'Certificate is not installed or does not match',
+        ...certificateCheckResult,
       };
     }
 

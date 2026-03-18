@@ -49,7 +49,7 @@ function Main(props: { space: Space }): React.JSX.Element {
         break;
       }
       default:
-        throw new Error(launchResult.code);
+        throw new Error(`Unhandled error '${launchResult.code}': ${launchResult.message}`);
     }
   };
 

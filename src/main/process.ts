@@ -1,4 +1,4 @@
-import { ChildProcess, spawn } from 'node:child_process';
+import { ChildProcess, exec, ExecException, spawn } from 'node:child_process';
 import waitPort from 'wait-port';
 
 import { createLogger } from './logger';
@@ -82,4 +82,14 @@ export async function spawnAsync(command: string, args: string[], title: string)
       resolve();
     });
   });
+}
+
+export async function execAsync(command: string) {
+  return new Promise<{
+    err: ExecException | null,
+    stdout: NonSharedBuffer,
+    stderr: NonSharedBuffer,
+  }>(resolve => {
+    exec(command, { encoding: 'buffer' }, (err, stdout, stderr) => resolve({ err, stdout, stderr }));
+  })
 }

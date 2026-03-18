@@ -1,4 +1,4 @@
-import { CHECK_CERTIFICATE_CODES, INSTALL_CERTIFICATE_CODES } from '../../shared/Api';
+import { CHECK_CERTIFICATE_RESULT_CODES, INSTALL_CERTIFICATE_CODES, IPCResponse } from '../../shared/Api';
 
 export abstract class CertificateManager {
   public certPath: string;
@@ -7,7 +7,7 @@ export abstract class CertificateManager {
     this.certPath = certPath;
   }
 
-  abstract checkInstalledCertificate(): Promise<{ code: CHECK_CERTIFICATE_CODES; error?: any }>;
-  abstract installCertificate(): Promise<{ code: INSTALL_CERTIFICATE_CODES }>;
+  abstract checkInstalledCertificate(): Promise<IPCResponse<CHECK_CERTIFICATE_RESULT_CODES>>;
+  abstract installCertificate(): Promise<IPCResponse<INSTALL_CERTIFICATE_CODES>>;
   abstract uninstallCertificate(): Promise<void>;
 }

@@ -3,11 +3,11 @@ import { readFile } from 'node:fs/promises';
 import * as forge from 'node-forge';
 import * as certCa from '../cert-ca';
 import { CertificateManager } from './manager';
-import { CHECK_CERTIFICATE_CODES, INSTALL_CERTIFICATE_CODES } from '../../shared/Api';
+import { CHECK_CERTIFICATE_RESULT_CODES, INSTALL_CERTIFICATE_CODES } from '../../shared/Api';
 
 export class MacCertificateManager extends CertificateManager {
   async checkInstalledCertificate() {
-    return new Promise<{ code: CHECK_CERTIFICATE_CODES; error?: any }>((resolve) => {
+    return new Promise<{ code: CHECK_CERTIFICATE_RESULT_CODES; error?: any }>((resolve) => {
       const securityProcess = spawn('security', ['find-certificate', '-c', certCa.CERT_NAME, '-p']);
       let output = '';
       securityProcess.stdout.on('data', (data) => {

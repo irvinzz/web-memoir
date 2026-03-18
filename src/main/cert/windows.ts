@@ -1,104 +1,68 @@
-import { spawn } from 'node:child_process';
-import { readFile } from 'node:fs/promises';
+import { readFile, unlink } from 'node:fs/promises';
 import * as forge from 'node-forge';
 
 import * as certCa from '../cert-ca';
 import { CertificateManager } from './manager';
-import { CHECK_CERTIFICATE_CODES, INSTALL_CERTIFICATE_CODES } from '../../shared/Api';
+import { CHECK_CERTIFICATE_RESULT_CODES, INSTALL_CERTIFICATE_CODES, IPCResponse } from '../../shared/Api';
+import { execAsync, spawnAsync } from '../process';
+
+const decode = (() => {
+  try {
+    const iconv = require('iconv-lite');
+    return function(input) {
+      return iconv.decode(input, 'cp1251');
+    }
+  } catch {
+    return function(input) {
+      return input.toString();
+    }
+  }
+})();
 
 export class WindowsCertificateManager extends CertificateManager {
-  async checkInstalledCertificate() {
-    return new Promise<{ code: CHECK_CERTIFICATE_CODES; error?: any }>((resolve) => {
-      const certUtilProcess = spawn('certutil', [
-        '-user',
-        '-store',
-        '-v',
-        'Root',
-        certCa.CERT_NAME,
-      ]);
+  async checkInstalledCertificate(): Promise<IPCResponse<CHECK_CERTIFICATE_RESULT_CODES>> {
+    const referenceCertificateFileContent = await readFile(this.certPath, 'utf8');
+    const referenceCertificate = forge.pki.certificateFromPem(referenceCertificateFileContent);
+    const referenceSerialNumber = referenceCertificate.serialNumber;
+    const exportedCertFileName = referenceSerialNumber + '.crt';
+    const { err, stdout, stderr } = await execAsync(`certutil -user -store -f "${certCa.CERT_NAME}" ${referenceSerialNumber} ${exportedCertFileName}`);
+    try { await unlink(exportedCertFileName) } catch {}
+    const output = decode(stdout);
+    const errout = decode(stderr);
 
-      let output = '';
-      certUtilProcess.stdout.on('data', (data) => {
-        output += data.toString();
-      });
+    if (err) {
+      const { code } = err;
+      if (code === 2148073489) {
+        return { code: 'CERT_NOT_INSTALLED' };
+      } else if (code === 2147942480) {
+        // file already exported to cwd
+        return { code: 'OK' };
+      }
+      console.error('exitcode', code);
+      return { code: 'UNHANDLED_ERROR', message: output };
+    }
 
-      certUtilProcess.on('close', async (code) => {
-        if (code !== 0) {
-          resolve({ code: 'UNHANDLED_ERROR' });
-          return;
-        }
-        try {
-          const cert = forge.pki.certificateFromPem(output);
-          const certPem = await readFile(this.certPath, 'utf8');
-          const certFromPath = forge.pki.certificateFromPem(certPem);
-          const isValid = this.compareCertificates(cert, certFromPath);
-          if (isValid) {
-            resolve({ code: 'OK' });
-          } else {
-            resolve({ code: 'CERT_MISMATCH' });
-          }
-        } catch (e) {
-          resolve({ code: 'UNHANDLED_ERROR', error: e });
-        }
-      });
-
-      certUtilProcess.on('error', (error) => {
-        resolve({ code: 'UNHANDLED_ERROR', error });
-      });
-    });
+    return { code: 'OK' };
   }
 
-  async installCertificate() {
-    return await new Promise<{ code: INSTALL_CERTIFICATE_CODES; error?: any }>((resolve) => {
-      const securityProcess = spawn('security', [
-        'add-certificate',
-        '-t',
-        'C,',
-        '-k',
-        'login',
-        this.certPath,
-      ]);
-      securityProcess.on('close', (code) => {
-        if (code === 0) {
-          resolve({ code: 'OK' });
-        } else {
-          resolve({ code: 'UNHANDLED_ERROR', error: 'Failed to add certificate to Keychain' });
-        }
-      });
-    });
+  async installCertificate(): Promise<IPCResponse<INSTALL_CERTIFICATE_CODES>> {
+    const { err, stdout, stderr } = await execAsync(`certutil -v -user -addstore -f "${certCa.CERT_NAME}" ${this.certPath}`);
+
+    if (err) {
+      return { code: 'UNHANDLED_ERROR', message: decode(stdout), error: decode(stderr) };
+    }
+
+    return { code: 'OK', message: decode(stdout) };
   }
 
   async uninstallCertificate(): Promise<void> {
-    const securityProcess = spawn('security', ['delete-certificate', '-c', certCa.CERT_NAME]);
-
-    await new Promise<void>((resolve, reject) => {
-      securityProcess.on('close', (code) => {
-        if (code === 0 || code === -128) {
-          resolve();
-        } else {
-          reject(new Error('Failed to delete certificate from Keychain'));
-        }
-      });
-    });
-  }
-
-  private compareCertificates(cert1: any, cert2: any): boolean {
-    const subject1 = cert1.subject.attributes
-      .map((a: any) => `${a.shortName}=${a.value}`)
-      .join(',');
-    const subject2 = cert2.subject.attributes
-      .map((a: any) => `${a.shortName}=${a.value}`)
-      .join(',');
-
-    const issuer1 = cert1.issuer.attributes.map((a: any) => `${a.shortName}=${a.value}`).join(',');
-    const issuer2 = cert2.issuer.attributes.map((a: any) => `${a.shortName}=${a.value}`).join(',');
-
-    const serial1 = cert1.serialNumber;
-    const serial2 = cert2.serialNumber;
-
-    const valid1 = cert1.validity.notBefore.getTime() === cert2.validity.notBefore.getTime();
-    const valid2 = cert1.validity.notAfter.getTime() === cert2.validity.notAfter.getTime();
-
-    return subject1 === subject2 && issuer1 === issuer2 && serial1 === serial2 && valid1 && valid2;
+    const referenceCertificateFileContent = await readFile(this.certPath, 'utf8');
+    const referenceCertificate = forge.pki.certificateFromPem(referenceCertificateFileContent);
+    const referenceSerialNumber = referenceCertificate.serialNumber;
+    const { err, stdout, stderr } = await execAsync(`certutil -v -user -delstore "${certCa.CERT_NAME}" "${referenceSerialNumber}"`);
+    if (err) {
+      const { code } = err;
+      throw err;
+    }
   }
 }

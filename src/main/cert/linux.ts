@@ -1,91 +1,60 @@
-import { exec, spawn } from 'node:child_process';
 import { readFile } from 'node:fs/promises';
+
 import * as forge from 'node-forge';
+
 import * as certCa from '../cert-ca';
 import { CertificateManager } from './manager';
-import { CHECK_CERTIFICATE_CODES, INSTALL_CERTIFICATE_CODES } from '../../shared/Api';
+import { CHECK_CERTIFICATE_RESULT_CODES, INSTALL_CERTIFICATE_CODES, IPCResponse } from '../../shared/Api';
+import { execAsync, spawnAsync } from '../process';
 
 export class LinuxCertificateManager extends CertificateManager {
-  async checkInstalledCertificate() {
-    return new Promise<{ code: CHECK_CERTIFICATE_CODES; error?: any }>((resolve) => {
-      const certUtilProcess = exec(`certutil -d sql:$HOME/.pki/nssdb -L -a -n ${certCa.CERT_NAME}`);
-
-      let output = '';
-      certUtilProcess.stdout!.on('data', (data) => {
-        output += data.toString();
-      });
-
-      certUtilProcess.on('close', async (code) => {
-        if (code === 255) {
-          resolve({ code: 'CERT_NOT_INSTALLED' });
-        }
-        if (code !== 0) {
-          resolve({ code: 'UNHANDLED_ERROR' });
-        }
-        try {
-          const installedCertPem = forge.pki.certificateFromPem(output);
-          const certPem = await readFile(this.certPath, 'utf8');
-          const cert = forge.pki.certificateFromPem(certPem);
-          if (installedCertPem.serialNumber === cert.serialNumber) {
-            resolve({ code: 'OK' });
-          } else {
-            resolve({ code: 'CERT_MISMATCH' });
-          }
-        } catch (e) {
-          resolve({ code: 'UNHANDLED_ERROR', error: e });
-        }
-      });
-
-      certUtilProcess.on('error', (e) => {
-        resolve({ code: 'UNHANDLED_ERROR', error: e });
-      });
-    });
+  async checkInstalledCertificate(): Promise<IPCResponse<CHECK_CERTIFICATE_RESULT_CODES>> {
+    const { err, stdout, stderr} = await execAsync(`certutil -d sql:$HOME/.pki/nssdb -L -a -n ${certCa.CERT_NAME}`);
+    if (err) {
+      const { code } = err;
+      if (code === 255) {
+        return { code: 'CERT_NOT_INSTALLED' };
+      }
+      if (code !== 0) {
+        return { code: 'UNHANDLED_ERROR' };
+      }
+      
+    }
+    try {
+      const installedCertPem = forge.pki.certificateFromPem(stdout.toString());
+      const certPem = await readFile(this.certPath, 'utf8');
+      const cert = forge.pki.certificateFromPem(certPem);
+      if (installedCertPem.serialNumber === cert.serialNumber) {
+        return { code: 'OK' };
+      } else {
+        return { code: 'CERT_MISMATCH' };
+      }
+    } catch (e) {
+      return { code: 'UNHANDLED_ERROR', error: e };
+    }
   }
 
-  async installCertificate() {
-    return new Promise<{ code: INSTALL_CERTIFICATE_CODES; error?: any }>((resolve) => {
-      const certUtilProcess = exec(
-        `certutil -d sql:$HOME/.pki/nssdb -A -t C,, -n ${certCa.CERT_NAME} -i ${this.certPath}`
-      );
+  async installCertificate(): Promise<IPCResponse<INSTALL_CERTIFICATE_CODES>> {
+    const { err,  stdout, stderr } = await execAsync(
+      `certutil -d sql:$HOME/.pki/nssdb -A -t C,, -n ${certCa.CERT_NAME} -i ${this.certPath}`
+    );
+    if (err) {
+      const { code } = err;
+      return {
+        code: 'UNHANDLED_ERROR',
+        error: '"certutil install failed with code " + code',
+      };
 
-      certUtilProcess.on('close', (code) => {
-        if (code === 0) {
-          resolve({ code: 'OK' });
-        } else {
-          resolve({
-            code: 'UNHANDLED_ERROR',
-            error: '"certutil install failed with code " + code',
-          });
-        }
-      });
-
-      certUtilProcess.on('error', (error) => {
-        resolve({ code: 'UNHANDLED_ERROR', error });
-      });
-    });
+    }
+    return { code: 'OK' };
   }
 
   async uninstallCertificate(): Promise<void> {
-    return new Promise((resolve, reject) => {
-      const certUtilProcess = spawn('certutil', [
-        '-d',
-        'sql:\\$HOME/.pki/nssdb',
-        '-D',
-        '-n',
-        certCa.CERT_NAME,
-      ]);
+    const { err, stdout, stderr } = await execAsync(`certutil -d sql:\\$HOME/.pki/nssdb -D -n ${certCa.CERT_NAME}`);
 
-      certUtilProcess.on('close', (code) => {
-        if (code === 0) {
-          resolve();
-        } else {
-          reject(new Error('certutil uninstall failed with code ' + code));
-        }
-      });
-
-      certUtilProcess.on('error', (error) => {
-        reject(error);
-      });
-    });
+    if (err) {
+      const { code } = err;
+      throw new Error('certutil uninstall failed with code ' + code)
+    }
   }
 }
