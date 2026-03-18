@@ -1,4 +1,4 @@
-import { ProxyConfiguration } from 'crawlee';
+import { Configuration, ProxyConfiguration } from 'crawlee';
 
 import { importCrawlee, importPlaywright } from '../playwright';
 import { createLogger } from '../logger';
@@ -15,7 +15,11 @@ export async function crawlWebsite(opts: CrawlOptions): Promise<void> {
   const { PlaywrightCrawler, RequestQueue } = importCrawlee();
   const { chromium } = importPlaywright();
 
-  const requestQueue = await RequestQueue.open(`crawl-${opts.startUrl}`);
+  const requestQueue = await RequestQueue.open(`crawl-${opts.startUrl}`, {
+    config: new Configuration({
+      persistStorage: false,
+    }),
+  });
 
   requestQueue.addRequest({ url: opts.startUrl });
 

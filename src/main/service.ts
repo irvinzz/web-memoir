@@ -30,7 +30,8 @@ function onDBStopped(): void {
 
 export async function startProxyInstance(options: { space: string }): Promise<void> {
   const { space } = options;
-  const dbInstance = await getDBInstance({ onClose: onDBStopped });
+  const dbInstance = await getDBInstance();
+  dbInstance.process.on('close', onDBStopped);
   const proxyPort = await getPort({ port: 3128, host: '127.0.0.1' });
   const proxyInstance = await startProxy({
     dbUrl: `mongodb://localhost:${dbInstance.port}`,

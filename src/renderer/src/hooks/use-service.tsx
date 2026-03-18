@@ -12,7 +12,7 @@ export function useService(space: string): {
 } {
   const [enabled, setEnabled] = useState<boolean>(false);
   const [settings, setSettings] = useState<ProxySettings>({});
-  const [catchedSpace, setCatchedSpace] = useState();
+  const [catchedSpace, setCatchedSpace] = useState<string>();
   const [loadSettingsPromise, setLoadSettingsPromise] = useState<Promise<void>>();
 
   useEffect(() => {

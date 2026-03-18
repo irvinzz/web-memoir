@@ -25,7 +25,7 @@ const api: Api = {
   removeSpace: (space: Space) => ipcRenderer.invoke('removeSpace', space),
   setActiveSpace: (space: Space) => ipcRenderer.invoke('setActiveSpace', space),
   exportSpace: (spaceName: string) => ipcRenderer.invoke('exportSpace', spaceName),
-  importSpace: (spaceName: string) => ipcRenderer.invoke('importSpace', spaceName),
+  importSpace: () => ipcRenderer.invoke('importSpace'),
 };
 
 // Use `contextBridge` APIs to expose Electron APIs to
