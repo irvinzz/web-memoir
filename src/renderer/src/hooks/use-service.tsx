@@ -25,6 +25,8 @@ export function useService(space?: string): {
           setSettings(loadedOptions);
           if (proxyInstance) {
             setEnabled(true);
+          } else {
+            setEnabled(false);
           }
         }
       )

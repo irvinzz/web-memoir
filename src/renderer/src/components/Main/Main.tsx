@@ -13,12 +13,15 @@ import {
 import TravelExploreIcon from '@mui/icons-material/TravelExplore';
 import SettingsIcon from '@mui/icons-material/Settings';
 import SmartToyOutlined from '@mui/icons-material/SmartToyOutlined';
+
+import { Space } from '@shared';
+
 import { useService } from '@renderer/hooks/use-service';
 import { useHandleAsyncAction } from '@renderer/hooks/handle-async-action';
-import { Space } from '@shared';
 import { useTranslation } from '@renderer/localization/hook';
-import SpaceManager from './components/SpaceManager';
 import { useSpaces } from '@renderer/hooks/use-spaces';
+
+import SpaceManager from './components/SpaceManager';
 import SettingsDialog from './components/Settings';
 import { ManualLaunchDialog } from './components/ManualLaunch';
 import { CrawlDialog } from './components/Crawl';
@@ -47,7 +50,6 @@ function Main(): React.JSX.Element {
     enabled: resolvedServiceEnabled,
     settings: spaceSettings,
     toggleSettings,
-    describeInstance,
   } = useService(activeSpace?.name);
 
   const startBrowser = async (ignoreSSLError = false): Promise<void> => {
@@ -57,6 +59,7 @@ function Main(): React.JSX.Element {
       case 'OK': {
         return;
       }
+      case 'CERT_MISMATCH':
       case 'CERT_NOT_INSTALLED': {
         setInstallCertificateConfirmationDialogVisible(true);
         break;
@@ -179,7 +182,12 @@ function Main(): React.JSX.Element {
             <CrawlDialog
               open={crawlDialogVisible}
               onClose={() => setCrawlDialogVisible(false)}
-              space={activeSpace}
+              onOk={async (startUrl) => {
+                if (resolvedServiceEnabled) {
+                  await startService();
+                }
+                await window.api.runCrawler(activeSpace.name, startUrl, {});
+              }}
             />
           )}
         </ButtonGroup>

@@ -10,17 +10,15 @@ import {
   Button,
 } from '@mui/material';
 
-import { Space } from '@shared';
-
 import { useHandleAsyncAction } from '@renderer/hooks/handle-async-action';
 import { useTranslation } from '@renderer/localization/hook';
 
 export function CrawlDialog(props: {
-  space: Space;
   open: boolean;
   onClose: () => void;
+  onOk: (startUrl: string) => Promise<void>;
 }): React.JSX.Element {
-  const { open, onClose, space } = props;
+  const { open, onClose, onOk } = props;
   const { t } = useTranslation();
   const { handleAsyncAction } = useHandleAsyncAction();
 
@@ -35,7 +33,7 @@ export function CrawlDialog(props: {
         return;
       }
       setStartUrlError(undefined);
-      await window.api.runCrawler(space.name, startUrl, {});
+      await onOk(startUrl);
       onClose();
     });
   };

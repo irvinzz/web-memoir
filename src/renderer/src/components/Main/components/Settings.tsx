@@ -86,6 +86,21 @@ export default function SettingsDialog(props: {
               <FormControlLabel
                 control={
                   <Switch
+                    checked={!!settings.offline}
+                    onChange={(e) => toggleSettings({ offline: e.target.checked })}
+                  />
+                }
+                label={
+                  <Typography>
+                    {settings.offline ? t('offlineModeEnabled') : t('offlineModeEnabled')}
+                  </Typography>
+                }
+              />
+            </ListItem>
+            <ListItem alignItems="center">
+              <FormControlLabel
+                control={
+                  <Switch
                     checked={!!settings.useUpstreamProxy}
                     onChange={(e) => {
                       if (e.target.checked) {

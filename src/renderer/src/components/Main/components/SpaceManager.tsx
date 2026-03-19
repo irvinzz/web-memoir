@@ -12,7 +12,7 @@ import {
   ButtonGroup,
 } from '@mui/material';
 import {
-  Cloud,
+  WorkspacesOutline,
   Add,
   Search,
   SaveAltTwoTone,
@@ -111,7 +111,7 @@ function SpaceManager({
             gap: 1,
           }}
         >
-          <Cloud sx={{ color: 'primary.main' }} />
+          <WorkspacesOutline sx={{ color: 'primary.main' }} />
           <Typography variant="body1" sx={{ fontWeight: 'medium' }}>
             {t('space')}:
           </Typography>

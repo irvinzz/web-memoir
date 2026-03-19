@@ -12,7 +12,7 @@ import { stopProcess } from './process';
 
 export const certManager = getCertificateManager(caCrtPath);
 
-const profilesBasePath = join(app.getPath('appData'), 'offline-internet', 'chrome-profiles');
+const profilesBasePath = join(app.getPath('appData'), 'web-memoir', 'chrome-profiles');
 
 interface ChromiumInstance {
   process: ChildProcess;
