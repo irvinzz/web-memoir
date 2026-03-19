@@ -1,12 +1,18 @@
 import { spawn } from 'node:child_process';
 import { readFile } from 'node:fs/promises';
+
 import * as forge from 'node-forge';
+
 import * as certCa from '../cert-ca';
 import { CertificateManager } from './manager';
-import { CHECK_CERTIFICATE_RESULT_CODES, INSTALL_CERTIFICATE_CODES } from '../../shared/Api';
+import {
+  CHECK_CERTIFICATE_RESULT_CODES,
+  INSTALL_CERTIFICATE_CODES,
+  IPCResponse,
+} from '../../shared/Api';
 
 export class MacCertificateManager extends CertificateManager {
-  async checkInstalledCertificate() {
+  async checkInstalledCertificate(): Promise<IPCResponse<CHECK_CERTIFICATE_RESULT_CODES>> {
     return new Promise<{ code: CHECK_CERTIFICATE_RESULT_CODES; error?: any }>((resolve) => {
       const securityProcess = spawn('security', ['find-certificate', '-c', certCa.CERT_NAME, '-p']);
       let output = '';
@@ -41,7 +47,7 @@ export class MacCertificateManager extends CertificateManager {
     });
   }
 
-  async installCertificate() {
+  async installCertificate(): Promise<IPCResponse<INSTALL_CERTIFICATE_CODES>> {
     return await new Promise<{ code: INSTALL_CERTIFICATE_CODES; error?: any }>(
       (resolve, reject) => {
         const securityProcess = spawn('security', [

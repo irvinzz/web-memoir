@@ -1,4 +1,8 @@
-import { CHECK_CERTIFICATE_RESULT_CODES, INSTALL_CERTIFICATE_CODES, IPCResponse } from '../../shared/Api';
+import {
+  CHECK_CERTIFICATE_RESULT_CODES,
+  INSTALL_CERTIFICATE_CODES,
+  IPCResponse,
+} from '../../shared/Api';
 
 export abstract class CertificateManager {
   public certPath: string;

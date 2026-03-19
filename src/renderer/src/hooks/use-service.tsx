@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useState } from 'react';
 
-import { ProxySettings } from '@shared';
+import { ProxyInstanceDescription, ProxySettings } from '@shared';
 
-export function useService(space: string): {
+export function useService(space?: string): {
   enabled: boolean;
-  enableService: () => Promise<void>;
+  startService: () => Promise<ProxyInstanceDescription>;
   disableService: () => Promise<void>;
   describeInstance: () => Promise<{ port: number } | null>;
   toggleSettings: (input: Partial<ProxySettings>) => Promise<void>;
@@ -16,6 +16,7 @@ export function useService(space: string): {
   const [loadSettingsPromise, setLoadSettingsPromise] = useState<Promise<void>>();
 
   useEffect(() => {
+    if (!space) return;
     if (loadSettingsPromise && catchedSpace === space) return;
     setCatchedSpace(space);
     setLoadSettingsPromise(
@@ -32,6 +33,7 @@ export function useService(space: string): {
 
   const toggleSettings = useCallback(
     async (settingsChanges: Partial<ProxySettings>) => {
+      if (!space) return;
       const newSettings: ProxySettings = {
         ...settings,
         ...settingsChanges,
@@ -52,22 +54,23 @@ export function useService(space: string): {
     };
   }, [setEnabled]);
 
-  const enableService = useCallback(async () => {
-    await window.api.startProxyInstance(space);
+  const startService = useCallback(async (): Promise<ProxyInstanceDescription> => {
+    const result = await window.api.startProxyInstance(space!);
     setEnabled(true);
+    return result;
   }, [space]);
 
   const disableService = useCallback(async () => {
-    await window.api.stopProxyInstance(space);
+    await window.api.stopProxyInstance(space!);
     setEnabled(false);
   }, [space]);
 
   return {
     enabled,
-    enableService,
+    startService,
     disableService,
     describeInstance: () => {
-      return window.api.describeProxyInstance(space);
+      return window.api.describeProxyInstance(space!);
     },
 
     toggleSettings,

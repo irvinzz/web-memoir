@@ -115,7 +115,7 @@ function SpaceManager({
           <Typography variant="body1" sx={{ fontWeight: 'medium' }}>
             {t('space')}:
           </Typography>
-          <Button variant="outlined" size="small" onClick={handleOpenDialog}>
+          <Button variant="outlined" color='warning' size="small" onClick={handleOpenDialog}>
             {activeSpace?.name}
           </Button>
         </Box>

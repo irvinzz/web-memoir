@@ -3,7 +3,7 @@ import { ChildProcess } from 'node:child_process';
 import { app } from 'electron';
 import getPort from 'get-port';
 
-import { ProxySettings } from '../shared/Api';
+import { ProxyInstanceDescription, ProxySettings } from '../shared/Api';
 import { getDBInstance, getRunningDBInstance } from './db';
 import { startProxy } from './proxy';
 import { createLogger } from './logger';
@@ -28,7 +28,9 @@ function onDBStopped(): void {
   stopProxyInstances({ allSpaces: true });
 }
 
-export async function startProxyInstance(options: { space: string }): Promise<void> {
+export async function startProxyInstance(options: {
+  space: string;
+}): Promise<ProxyInstanceDescription> {
   const { space } = options;
   const dbInstance = await getDBInstance();
   dbInstance.process.on('close', onDBStopped);
@@ -47,6 +49,11 @@ export async function startProxyInstance(options: { space: string }): Promise<vo
   });
 
   logger.info('Service started successfully');
+
+  return {
+    ip: '127.0.0.1',
+    port: proxyPort,
+  };
 }
 
 export async function stopProxyInstances(

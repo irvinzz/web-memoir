@@ -84,12 +84,15 @@ export async function spawnAsync(command: string, args: string[], title: string)
   });
 }
 
-export async function execAsync(command: string) {
-  return new Promise<{
-    err: ExecException | null,
-    stdout: NonSharedBuffer,
-    stderr: NonSharedBuffer,
-  }>(resolve => {
-    exec(command, { encoding: 'buffer' }, (err, stdout, stderr) => resolve({ err, stdout, stderr }));
-  })
+type ExecAsyncReturnType = {
+  err: ExecException | null;
+  stdout: NonSharedBuffer;
+  stderr: NonSharedBuffer;
+};
+export async function execAsync(command: string): Promise<ExecAsyncReturnType> {
+  return new Promise<ExecAsyncReturnType>((resolve) => {
+    exec(command, { encoding: 'buffer' }, (err, stdout, stderr) =>
+      resolve({ err, stdout, stderr })
+    );
+  });
 }

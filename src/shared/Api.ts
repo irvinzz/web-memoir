@@ -15,6 +15,11 @@ export interface SpacesSettings {
   spaces: Space[];
 }
 
+export interface ProxyInstanceDescription {
+  ip: string;
+  port: number;
+}
+
 export type CHECK_CERTIFICATE_RESULT_CODES =
   | 'OK'
   | 'CERT_NOT_INSTALLED'
@@ -26,9 +31,9 @@ export type START_BROWSER_CODES = 'OK' | 'PROXY_PROCESS_MISSING' | CHECK_CERTIFI
 export interface Api {
   loadOptions: (space: string) => Promise<ProxySettings>;
   applyOptions: (space: string, options: ProxySettings) => Promise<void>;
-  startProxyInstance: (space: string) => Promise<void>;
+  startProxyInstance: (space: string) => Promise<ProxyInstanceDescription>;
   stopProxyInstance: (space: string) => Promise<void>;
-  describeProxyInstance: (space: string) => Promise<{ port: number } | null>;
+  describeProxyInstance: (space: string) => Promise<ProxyInstanceDescription | null>;
   startBrowser: (
     space: string,
     ignoreSSLError: boolean
@@ -54,4 +59,7 @@ export type ProxySettings = {
   allowLarge?: boolean;
   allowMedia?: boolean;
   offline?: boolean;
+  private?: boolean;
+  customBrowser?: boolean;
+  allowNetwork?: boolean;
 };
