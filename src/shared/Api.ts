@@ -5,14 +5,12 @@ export interface IPCResponse<CODES extends string> {
 }
 
 export interface Space {
-  name: string;
-  private: boolean;
-  startPage?: string;
+  settings?: SpaceSettings;
 }
 
-export interface SpacesSettings {
+export interface SpacesConfiguration {
   activeSpaceName: string;
-  spaces: Space[];
+  spaces: Record<string, Space>;
 }
 
 export interface ProxyInstanceDescription {
@@ -29,8 +27,6 @@ export type INSTALL_CERTIFICATE_CODES = 'OK' | 'UNHANDLED_ERROR';
 export type START_BROWSER_CODES = 'OK' | 'PROXY_PROCESS_MISSING' | CHECK_CERTIFICATE_RESULT_CODES;
 
 export interface Api {
-  loadOptions: (space: string) => Promise<ProxySettings>;
-  applyOptions: (space: string, options: ProxySettings) => Promise<void>;
   startProxyInstance: (space: string) => Promise<ProxyInstanceDescription>;
   stopProxyInstance: (space: string) => Promise<void>;
   describeProxyInstance: (space: string) => Promise<ProxyInstanceDescription | null>;
@@ -40,19 +36,25 @@ export interface Api {
   ) => Promise<IPCResponse<START_BROWSER_CODES>>;
   installCertificate: () => Promise<void>;
   openCertiticateFolder: () => Promise<void>;
-  runCrawler: (space: string, startUrl: string, options: {}) => Promise<void>;
+  runCrawler: (
+    space: string,
+    startUrl: string,
+    options: { runInForeground: boolean }
+  ) => Promise<void>;
   putToClipboard: (text: string) => Promise<void>;
   inspect: () => Promise<any>;
 
-  getSpaces: () => Promise<SpacesSettings>;
-  addSpace: (newSpace: Space) => Promise<void>;
-  removeSpace: (space: Space) => Promise<void>;
-  setActiveSpace: (space: Space) => Promise<void>;
+  getSpaces: () => Promise<SpacesConfiguration>;
+  addSpace: (spaceName: string, newSpace: Space) => Promise<void>;
+  removeSpace: (spaceName: string) => Promise<void>;
+  setActiveSpace: (spaceName: string) => Promise<void>;
   exportSpace: (spaceName: string) => Promise<void>;
   importSpace: () => Promise<void>;
+
+  applySpaceSettings: (space: string, options: SpaceSettings) => Promise<void>;
 }
 
-export type ProxySettings = {
+export type SpaceSettings = {
   useUpstreamProxy?: boolean;
   upstreamProxyAddress?: string;
   cacheShare?: boolean;
@@ -62,4 +64,5 @@ export type ProxySettings = {
   private?: boolean;
   customBrowser?: boolean;
   allowNetwork?: boolean;
+  startPage?: string;
 };

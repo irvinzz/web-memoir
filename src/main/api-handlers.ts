@@ -1,21 +1,20 @@
 import { app, ipcMain, IpcMainInvokeEvent, shell } from 'electron';
 
 import {
-  applyProxySettings,
+  applySpaceSettings,
   getProxyInstance,
   startProxyInstance,
   stopProxyInstances,
 } from './service';
 import { Api, IPCResponse, START_BROWSER_CODES } from '../shared/Api';
 import { certManager, installCertificate, startChromium } from './browser';
-import { loadProxySettings } from './settings';
 import { caPath } from './cert-ca';
 import { resourcesDir } from './const';
 import { crawlWebsite } from './web-crawler';
 import {
   addSpace,
   exportSpace,
-  getSpacesSettings,
+  getSpacesConfiguration,
   importSpace,
   removeSpace,
   setActiveSpace,
@@ -31,12 +30,8 @@ function handleApiEvent<K extends keyof Api>(name: K, handler: ToHandler<Api[K]>
   return ipcMain.handle(name, handler);
 }
 
-handleApiEvent('loadOptions', async (_event, space) => {
-  return loadProxySettings(space);
-});
-
-handleApiEvent('applyOptions', async (_event, space, newSettings) => {
-  return applyProxySettings({ space }, newSettings);
+handleApiEvent('applySpaceSettings', async (_event, space, newSettings) => {
+  return applySpaceSettings({ space }, newSettings);
 });
 
 handleApiEvent('startProxyInstance', async (_event, space) => {
@@ -53,6 +48,7 @@ handleApiEvent('runCrawler', async (_event, space, startUrl, options) => {
   await crawlWebsite({
     startUrl,
     proxyUrl: `http://localhost:${proxyInstance.port}`,
+    headless: options.runInForeground !== true,
     progressCallback(state) {
       //
     },
@@ -99,7 +95,7 @@ handleApiEvent('installCertificate', async () => {
 handleApiEvent('describeProxyInstance', async (_event, space) => {
   const instance = getProxyInstance(space);
   if (!instance) return null;
-  return { port: instance.port };
+  return { port: instance.port, ip: instance.address };
 });
 
 handleApiEvent('openCertiticateFolder', async () => {
@@ -122,19 +118,19 @@ handleApiEvent('inspect', async () => {
 });
 
 handleApiEvent('getSpaces', async () => {
-  return getSpacesSettings();
+  return getSpacesConfiguration();
 });
 
-handleApiEvent('addSpace', async (_event, newSpace) => {
-  return addSpace(newSpace);
+handleApiEvent('addSpace', async (_event, spaceName, newSpace) => {
+  return addSpace(spaceName, newSpace);
 });
 
-handleApiEvent('removeSpace', async (_event, space) => {
-  return removeSpace(space);
+handleApiEvent('removeSpace', async (_event, spaceName) => {
+  return removeSpace(spaceName);
 });
 
-handleApiEvent('setActiveSpace', async (_event, space) => {
-  return setActiveSpace(space);
+handleApiEvent('setActiveSpace', async (_event, spaceName) => {
+  return setActiveSpace(spaceName);
 });
 
 handleApiEvent('exportSpace', async (_event, spaceName) => {

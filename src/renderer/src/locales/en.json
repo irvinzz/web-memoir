@@ -30,6 +30,7 @@
     "allowLarge": "Allow large",
     "keepMedia": "Keep Media",
     "crawl": "Crawl",
+    "runInForeground": "Run in foreground",
     "crawler": "Crawler",
     "options": "Options",
     "debug": "Debug",

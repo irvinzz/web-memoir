@@ -1,20 +1,20 @@
-import { Space, SpacesSettings } from '@shared';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+
+import { Space, SpacesConfiguration, SpaceSettings } from '@shared';
 
 export function useSpaces(): {
-  activeSpace: Space | undefined;
-  setActiveSpace: (space: Space) => Promise<void>;
-  spaces: Space[];
-  addSpace: (newSpace: Space) => Promise<void>;
-  removeSpace: (space: Space) => Promise<void>;
+  activeSpaceName: string | undefined;
+  setActiveSpace: (spaceName: string) => Promise<void>;
+  spaces: Record<string, Space>;
+  addSpace: (spaceName: string, newSpace: Space) => Promise<void>;
+  removeSpace: (spaceName: string) => Promise<void>;
   importSpace: () => Promise<void>;
+  toggleSettings: (spaceName: string, newSettings: SpaceSettings) => Promise<void>;
 } {
-  const [spacesSettings, setSpacesSettings] = useState<SpacesSettings>();
+  const [spacesSettings, setSpacesSettings] = useState<SpacesConfiguration>();
   const [fetchOperation, setFetchOperation] = useState<Promise<void>>();
 
-  const activeSpace = spacesSettings?.spaces.find(
-    (space) => space.name === spacesSettings.activeSpaceName
-  );
+  const activeSpace = spacesSettings?.activeSpaceName;
 
   useEffect(() => {
     if (fetchOperation) return;
@@ -26,15 +26,30 @@ export function useSpaces(): {
     );
   }, [fetchOperation]);
 
-  return {
-    activeSpace,
-    setActiveSpace: async (space) => {
-      await window.api.setActiveSpace(space);
+  const toggleSettings = useCallback(
+    async (spaceName: string, settingsChanges: Partial<SpaceSettings>) => {
+      if (!spaceName) return;
+      const spaceSettings = spacesSettings?.spaces[spaceName];
+      if (!spaceSettings) throw new Error(`Space missing`);
+      const newSettings: SpaceSettings = {
+        ...spaceSettings.settings,
+        ...settingsChanges,
+      };
+      await window.api.applySpaceSettings(spaceName, newSettings);
       setFetchOperation(undefined);
     },
-    spaces: spacesSettings?.spaces || [],
-    addSpace: async (newSpace) => {
-      await window.api.addSpace(newSpace);
+    [spacesSettings?.spaces]
+  );
+
+  return {
+    activeSpaceName: activeSpace,
+    setActiveSpace: async (spaceName) => {
+      await window.api.setActiveSpace(spaceName);
+      setFetchOperation(undefined);
+    },
+    spaces: spacesSettings?.spaces || {},
+    addSpace: async (spaceName, newSpace) => {
+      await window.api.addSpace(spaceName, newSpace);
       setFetchOperation(undefined);
     },
     removeSpace: async (space) => {
@@ -45,5 +60,6 @@ export function useSpaces(): {
       await window.api.importSpace();
       setFetchOperation(undefined);
     },
+    toggleSettings,
   };
 }

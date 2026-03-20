@@ -1,5 +1,5 @@
 appId: com.electron.app
-productName: offline-internet
+productName: web-memoir
 directories:
   buildResources: build
 files:
@@ -37,7 +37,7 @@ asarUnpack:
   - '**/node_modules/humanize-ms/**/*'
   - '**/node_modules/get-port/**/*'
 win:
-  executableName: offline-internet
+  executableName: web-memoir
 nsis:
   artifactName: ${name}-${version}-setup.${ext}
   shortcutName: ${productName}

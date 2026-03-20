@@ -7,6 +7,9 @@ import { kill } from 'node:process';
 
 import { app } from 'electron';
 import getPort from 'get-port';
+import type mongodbType from 'mongodb';
+
+import { transformSpaceNameToDBName } from '@shared';
 
 import { resourcesDir } from './const';
 import { createLogger } from './logger';
@@ -104,4 +107,13 @@ async function startDBInstance(): Promise<{ port: number; process: ChildProcess 
   await waitProcessPort(dbChildProcess, listenPort);
 
   return { port: listenPort, process: dbChildProcess };
+}
+
+export async function getSpaceDB(spaceName: string): Promise<mongodbType.Db> {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const mongodb = require('mongodb') as typeof mongodbType;
+  const dbInstance = await getDBInstance();
+  const client = new mongodb.MongoClient(`mongodb://localhost:${dbInstance.port}`);
+  await client.connect();
+  return client.db(transformSpaceNameToDBName(spaceName));
 }

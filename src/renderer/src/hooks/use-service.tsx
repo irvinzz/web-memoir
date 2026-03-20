@@ -1,17 +1,14 @@
 import { useCallback, useEffect, useState } from 'react';
 
-import { ProxyInstanceDescription, ProxySettings } from '@shared';
+import { ProxyInstanceDescription } from '@shared';
 
 export function useService(space?: string): {
   enabled: boolean;
   startService: () => Promise<ProxyInstanceDescription>;
   disableService: () => Promise<void>;
   describeInstance: () => Promise<{ port: number } | null>;
-  toggleSettings: (input: Partial<ProxySettings>) => Promise<void>;
-  settings: ProxySettings;
 } {
   const [enabled, setEnabled] = useState<boolean>(false);
-  const [settings, setSettings] = useState<ProxySettings>({});
   const [catchedSpace, setCatchedSpace] = useState<string>();
   const [loadSettingsPromise, setLoadSettingsPromise] = useState<Promise<void>>();
 
@@ -20,32 +17,15 @@ export function useService(space?: string): {
     if (loadSettingsPromise && catchedSpace === space) return;
     setCatchedSpace(space);
     setLoadSettingsPromise(
-      Promise.all([window.api.loadOptions(space), window.api.describeProxyInstance(space)]).then(
-        ([loadedOptions, proxyInstance]) => {
-          setSettings(loadedOptions);
-          if (proxyInstance) {
-            setEnabled(true);
-          } else {
-            setEnabled(false);
-          }
+      Promise.all([window.api.describeProxyInstance(space)]).then(([proxyInstance]) => {
+        if (proxyInstance) {
+          setEnabled(true);
+        } else {
+          setEnabled(false);
         }
-      )
+      })
     );
-  }, [catchedSpace, loadSettingsPromise, settings, space]);
-
-  const toggleSettings = useCallback(
-    async (settingsChanges: Partial<ProxySettings>) => {
-      if (!space) return;
-      const newSettings: ProxySettings = {
-        ...settings,
-        ...settingsChanges,
-      };
-      await window.api.applyOptions(space, newSettings);
-      setSettings(newSettings);
-      setLoadSettingsPromise(undefined);
-    },
-    [settings, space]
-  );
+  }, [catchedSpace, loadSettingsPromise, space]);
 
   useEffect(() => {
     const unbindListener = window.electron.ipcRenderer.on('serviceStopped', () => {
@@ -74,8 +54,5 @@ export function useService(space?: string): {
     describeInstance: () => {
       return window.api.describeProxyInstance(space!);
     },
-
-    toggleSettings,
-    settings,
   };
 }

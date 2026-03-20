@@ -3,11 +3,11 @@ import { ChildProcess } from 'node:child_process';
 import { app } from 'electron';
 import getPort from 'get-port';
 
-import { ProxyInstanceDescription, ProxySettings } from '../shared/Api';
+import { ProxyInstanceDescription, SpaceSettings } from '../shared/Api';
 import { getDBInstance, getRunningDBInstance } from './db';
 import { startProxy } from './proxy';
 import { createLogger } from './logger';
-import { writeProxySettings } from './settings';
+import { writeSpaceSettings } from './spaces';
 import { stopBrowserInstance } from './browser';
 import { stopProcess } from './process';
 
@@ -16,6 +16,7 @@ const logger = createLogger('service');
 export interface ProxyInstance {
   process: ChildProcess;
   port: number;
+  address: string;
 }
 
 const proxyInstances: Map<string, ProxyInstance> = new Map();
@@ -34,11 +35,14 @@ export async function startProxyInstance(options: {
   const { space } = options;
   const dbInstance = await getDBInstance();
   dbInstance.process.on('close', onDBStopped);
-  const proxyPort = await getPort({ port: 3128, host: '127.0.0.1' });
+
+  const ipAddress = '127.0.0.1';
+  const proxyPort = await getPort({ port: 3128, host: ipAddress });
   const proxyInstance = await startProxy({
     dbUrl: `mongodb://localhost:${dbInstance.port}`,
     space: space,
     port: proxyPort,
+    address: ipAddress,
     onClose(code) {
       proxyInstances.delete(options.space);
     },
@@ -46,12 +50,13 @@ export async function startProxyInstance(options: {
   proxyInstances.set(options.space, {
     process: proxyInstance,
     port: proxyPort,
+    address: ipAddress,
   });
 
   logger.info('Service started successfully');
 
   return {
-    ip: '127.0.0.1',
+    ip: ipAddress,
     port: proxyPort,
   };
 }
@@ -88,12 +93,12 @@ async function stopProxyInstance(space: string): Promise<void> {
   proxyInstances.delete(space);
 }
 
-export async function applyProxySettings(
+export async function applySpaceSettings(
   options: { space: string },
-  newProxyOptions: ProxySettings
+  newProxyOptions: SpaceSettings
 ): Promise<void> {
   const { space } = options;
-  await writeProxySettings(space, newProxyOptions);
+  await writeSpaceSettings(space, newProxyOptions);
   if (getProxyInstance(space)) {
     await stopProxyInstance(space);
     await startProxyInstance({ space });

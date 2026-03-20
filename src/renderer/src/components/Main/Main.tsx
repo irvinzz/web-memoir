@@ -42,19 +42,25 @@ function Main(): React.JSX.Element {
     port: number;
   } | null>(null);
 
-  const { activeSpace, setActiveSpace, spaces, addSpace, removeSpace, importSpace } = useSpaces();
+  const {
+    activeSpaceName,
+    setActiveSpace,
+    spaces,
+    addSpace,
+    removeSpace,
+    importSpace,
+    toggleSettings,
+  } = useSpaces();
 
   const {
     startService,
     disableService,
     enabled: resolvedServiceEnabled,
-    settings: spaceSettings,
-    toggleSettings,
-  } = useService(activeSpace?.name);
+  } = useService(activeSpaceName);
 
   const startBrowser = async (ignoreSSLError = false): Promise<void> => {
-    if (!activeSpace) return;
-    const launchResult = await window.api.startBrowser(activeSpace.name, ignoreSSLError);
+    if (!activeSpaceName) return;
+    const launchResult = await window.api.startBrowser(activeSpaceName, ignoreSSLError);
     switch (launchResult.code) {
       case 'OK': {
         return;
@@ -85,24 +91,24 @@ function Main(): React.JSX.Element {
   };
 
   const handleSpaceChange = (spaceName: string): void => {
-    const newActiveSpace = spaces.find((space) => space.name === spaceName);
+    const newActiveSpace = spaces[spaceName];
     if (!newActiveSpace) return;
-    setActiveSpace(newActiveSpace);
+    setActiveSpace(spaceName);
   };
 
-  const handleAddSpace = async (newSpace: Space): Promise<void> => {
-    if (spaces.some((space) => space.name === newSpace.name)) {
+  const handleAddSpace = async (spaceName: string, newSpace: Space): Promise<void> => {
+    if (spaces[spaceName]) {
       return;
     }
-    await addSpace(newSpace);
-    await setActiveSpace(newSpace);
+    await addSpace(spaceName, newSpace);
+    await setActiveSpace(spaceName);
   };
 
   return (
     <>
       <Box>
         <SpaceManager
-          activeSpace={activeSpace}
+          activeSpaceName={activeSpaceName}
           onSpaceChange={handleSpaceChange}
           availableSpaces={spaces}
           onSpaceAdd={handleAddSpace}
@@ -130,7 +136,7 @@ function Main(): React.JSX.Element {
                   await disableService();
                 } else {
                   const proxyInstance = await startService();
-                  if (spaceSettings.customBrowser) {
+                  if (spaces[activeSpaceName!].settings?.customBrowser) {
                     setManualLaunchDialogVisible({
                       visible: true,
                       port: proxyInstance.port,
@@ -154,18 +160,17 @@ function Main(): React.JSX.Element {
             color="info"
             title={t('settings')}
             onClick={() => {
-              console.debug('spaceSettings', spaceSettings);
               setOptionsDialogVisible(true);
             }}
           >
             <SettingsIcon />
           </Button>
-          {activeSpace && (
+          {activeSpaceName && (
             <SettingsDialog
               open={optionsDialogVisible}
               onClose={() => setOptionsDialogVisible(false)}
-              settings={spaceSettings}
-              toggleSettings={toggleSettings}
+              settings={spaces[activeSpaceName]?.settings}
+              toggleSettings={(newSettings) => toggleSettings(activeSpaceName, newSettings)}
             />
           )}
           <Button
@@ -178,15 +183,15 @@ function Main(): React.JSX.Element {
           >
             <SmartToyOutlined />
           </Button>
-          {activeSpace && (
+          {activeSpaceName && (
             <CrawlDialog
               open={crawlDialogVisible}
               onClose={() => setCrawlDialogVisible(false)}
-              onOk={async (startUrl) => {
-                if (resolvedServiceEnabled) {
+              onOk={async (startUrl, runInForeground) => {
+                if (!resolvedServiceEnabled) {
                   await startService();
                 }
-                await window.api.runCrawler(activeSpace.name, startUrl, {});
+                await window.api.runCrawler(activeSpaceName, startUrl, { runInForeground });
               }}
             />
           )}

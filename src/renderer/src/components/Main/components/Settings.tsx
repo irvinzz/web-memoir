@@ -13,9 +13,9 @@ import {
   Switch,
   TextField,
   Typography,
-
 } from '@mui/material';
-import { ProxySettings } from '@shared';
+
+import { SpaceSettings } from '@shared';
 
 import { socks5Re } from '@renderer/components/const';
 import { useHandleAsyncAction } from '@renderer/hooks/handle-async-action';
@@ -25,8 +25,8 @@ export default function SettingsDialog(props: {
   open: boolean;
   onClose: () => void;
 
-  settings: ProxySettings;
-  toggleSettings: (input: Partial<ProxySettings>) => Promise<void>;
+  settings?: SpaceSettings;
+  toggleSettings: (input: Partial<SpaceSettings>) => Promise<void>;
 }): React.JSX.Element {
   const { onClose, open, settings, toggleSettings } = props;
 
@@ -86,13 +86,13 @@ export default function SettingsDialog(props: {
               <FormControlLabel
                 control={
                   <Switch
-                    checked={!!settings.offline}
+                    checked={!!settings?.offline}
                     onChange={(e) => toggleSettings({ offline: e.target.checked })}
                   />
                 }
                 label={
                   <Typography>
-                    {settings.offline ? t('offlineModeEnabled') : t('offlineModeEnabled')}
+                    {settings?.offline ? t('offlineModeEnabled') : t('offlineModeEnabled')}
                   </Typography>
                 }
               />
@@ -101,7 +101,7 @@ export default function SettingsDialog(props: {
               <FormControlLabel
                 control={
                   <Switch
-                    checked={!!settings.useUpstreamProxy}
+                    checked={!!settings?.useUpstreamProxy}
                     onChange={(e) => {
                       if (e.target.checked) {
                         setProxyDialogVisible(true);
@@ -138,24 +138,22 @@ export default function SettingsDialog(props: {
                 label={<Typography>Keep Media</Typography>}
               />
             </ListItem> */}
-            {/*
             <ListItem alignItems="center">
               <FormControlLabel
                 control={
                   <Switch
-                    checked={!!settings.private}
+                    checked={!!settings?.private}
                     onChange={(e) => toggleSettings({ private: e.target.checked })}
                   />
                 }
                 label={<Typography>{t('private')}</Typography>}
               />
             </ListItem>
-            */}
             <ListItem alignItems="center">
               <FormControlLabel
                 control={
                   <Switch
-                    checked={!!settings.customBrowser}
+                    checked={!!settings?.customBrowser}
                     onChange={(e) => toggleSettings({ customBrowser: e.target.checked })}
                   />
                 }

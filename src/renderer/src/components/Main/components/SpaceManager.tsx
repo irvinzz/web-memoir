@@ -24,16 +24,16 @@ import { useTranslation } from '@renderer/localization/hook';
 import { useHandleAsyncAction } from '@renderer/hooks/handle-async-action';
 
 interface SpaceManagerProps {
-  activeSpace: Space | undefined;
+  activeSpaceName: string | undefined;
   onSpaceChange: (spaceName: string) => void;
-  availableSpaces: Space[];
-  onSpaceAdd: (newSpace: Space) => Promise<void>;
-  onSpaceRemove: (newSpace: Space) => Promise<void>;
+  availableSpaces: Record<string, Space>;
+  onSpaceAdd: (spaceName: string, newSpace: Space) => Promise<void>;
+  onSpaceRemove: (spaceName: string) => Promise<void>;
   onImportSpace: () => Promise<void>;
 }
 
 function SpaceManager({
-  activeSpace,
+  activeSpaceName,
   onSpaceChange,
   availableSpaces,
   onSpaceAdd,
@@ -62,8 +62,8 @@ function SpaceManager({
     setSearchTerm('');
   };
 
-  const handleSpaceSelect = (space: Space): void => {
-    onSpaceChange(space.name);
+  const handleSpaceSelect = (spaceName: string): void => {
+    onSpaceChange(spaceName);
     handleCloseDialog();
   };
 
@@ -74,21 +74,25 @@ function SpaceManager({
         return;
       }
 
-      await onSpaceAdd({ name: newSpaceName, private: false });
+      await onSpaceAdd(newSpaceName, { settings: {} });
       handleCloseDialog();
     });
   };
 
-  const filteredSpaces = useMemo(() => {
-    if (!searchTerm) return availableSpaces;
-    return availableSpaces.filter((space) =>
-      space.name.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+  const visibleSpaces = useMemo((): Array<Space & { name: string }> => {
+    return Object.entries(availableSpaces)
+      .map(([name, space]) => {
+        return { ...space, name };
+      })
+      .filter((space) => {
+        if (!searchTerm) return true;
+        return space.name.toLowerCase().includes(searchTerm.toLowerCase());
+      });
   }, [availableSpaces, searchTerm]);
 
-  const onSaveSpace = (space: Space): void => {
+  const onExportSpace = (spaceName: string): void => {
     handleAsyncAction(async () => {
-      await window.api.exportSpace(space.name);
+      await window.api.exportSpace(spaceName);
     });
   };
 
@@ -115,8 +119,8 @@ function SpaceManager({
           <Typography variant="body1" sx={{ fontWeight: 'medium' }}>
             {t('space')}:
           </Typography>
-          <Button variant="outlined" color='warning' size="small" onClick={handleOpenDialog}>
-            {activeSpace?.name}
+          <Button variant="outlined" color="warning" size="small" onClick={handleOpenDialog}>
+            {activeSpaceName}
           </Button>
         </Box>
       </Box>
@@ -155,8 +159,8 @@ function SpaceManager({
                 overflowY: 'auto',
               }}
             >
-              {filteredSpaces.length > 0 ? (
-                filteredSpaces.map((space) => (
+              {visibleSpaces.length > 0 ? (
+                visibleSpaces.map((space) => (
                   <>
                     <ButtonGroup fullWidth>
                       <Button
@@ -164,15 +168,15 @@ function SpaceManager({
                         key={space.name}
                         size="small"
                         variant={space === space ? 'contained' : 'outlined'}
-                        onClick={() => handleSpaceSelect(space)}
+                        onClick={() => handleSpaceSelect(space.name)}
                       >
                         {space.name}
                       </Button>
                       <Button
                         sx={{ flex: 1 }}
                         size="small"
-                        onClick={() => onSaveSpace(space)}
-                        disabled={space.private}
+                        onClick={() => onExportSpace(space.name)}
+                        disabled={space.settings?.private}
                         title={t('exportSpace')}
                       >
                         <SaveAltTwoTone />
@@ -187,7 +191,7 @@ function SpaceManager({
                             if (answer === 'NO') {
                               return;
                             } else if (answer === 'YES') {
-                              await onSpaceRemove(space);
+                              await onSpaceRemove(space.name);
                             } else {
                               throw new Error(`Invalid answer ${answer}`);
                             }

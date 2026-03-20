@@ -1,13 +1,12 @@
 import { clipboard, contextBridge, ipcRenderer } from 'electron';
 import { electronAPI } from '@electron-toolkit/preload';
 
-import { Api, ProxySettings, Space } from '../shared/Api';
+import { Api, SpaceSettings } from '../shared/Api';
 
 // Custom APIs for renderer
 const api: Api = {
-  loadOptions: (space) => ipcRenderer.invoke('loadOptions', space),
-  applyOptions: (space, newOptions: ProxySettings) =>
-    ipcRenderer.invoke('applyOptions', space, newOptions),
+  applySpaceSettings: (space, newOptions: SpaceSettings) =>
+    ipcRenderer.invoke('applySpaceSettings', space, newOptions),
   startProxyInstance: (space) => ipcRenderer.invoke('startProxyInstance', space),
   stopProxyInstance: (space) => ipcRenderer.invoke('stopProxyInstance', space),
   describeProxyInstance: (space) => ipcRenderer.invoke('describeProxyInstance', space),
@@ -21,10 +20,10 @@ const api: Api = {
   inspect: () => ipcRenderer.invoke('inspect'),
 
   getSpaces: () => ipcRenderer.invoke('getSpaces'),
-  addSpace: (newSpace: Space) => ipcRenderer.invoke('addSpace', newSpace),
-  removeSpace: (space: Space) => ipcRenderer.invoke('removeSpace', space),
-  setActiveSpace: (space: Space) => ipcRenderer.invoke('setActiveSpace', space),
-  exportSpace: (spaceName: string) => ipcRenderer.invoke('exportSpace', spaceName),
+  addSpace: (spaceName, newSpace) => ipcRenderer.invoke('addSpace', spaceName, newSpace),
+  removeSpace: (spaceName) => ipcRenderer.invoke('removeSpace', spaceName),
+  setActiveSpace: (spaceName) => ipcRenderer.invoke('setActiveSpace', spaceName),
+  exportSpace: (spaceName) => ipcRenderer.invoke('exportSpace', spaceName),
   importSpace: () => ipcRenderer.invoke('importSpace'),
 };
 

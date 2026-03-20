@@ -6,6 +6,7 @@ import { createLogger } from '../logger';
 export interface CrawlOptions {
   startUrl: string;
   proxyUrl: string;
+  headless: boolean;
   progressCallback?: (state: { visited: number; pending: number }) => void;
 }
 
@@ -27,7 +28,7 @@ export async function crawlWebsite(opts: CrawlOptions): Promise<void> {
   const visited: string[] = [];
   const crawler = new PlaywrightCrawler({
     requestQueue,
-    headless: false,
+    headless: opts.headless,
     launchContext: {
       launcher: chromium,
     },

@@ -7,28 +7,29 @@ import { transformSpaceNameToDBName } from '@shared';
 import { resourcesDir } from './const';
 import { caCrtPath, caKeyPath, createRootCA } from './cert-ca';
 import { createLogger } from './logger';
-import { ProxySettings } from '../shared/Api';
-import { loadProxySettings } from './settings';
+import { SpaceSettings } from '../shared/Api';
 import { waitProcessPort } from './process';
+import { loadSpace } from './spaces';
 
 const logger = createLogger('proxy');
 
 export interface ProxyStartOptions {
   space: string;
   port: number;
+  address: string;
   dbUrl: string;
   onClose: (code: number | null) => void;
 }
 
 export async function startProxy(options: ProxyStartOptions): Promise<ChildProcess> {
-  const { dbUrl, space, port, onClose: onCloseOption } = options;
+  const { dbUrl, space, port, onClose } = options;
   await createRootCA();
 
   const proxyBundleFilePath = join(resourcesDir, 'proxy.bundle.js');
 
-  let proxyOptions: ProxySettings = {};
+  let spaceSettings: SpaceSettings = {};
   try {
-    proxyOptions = await loadProxySettings(space);
+    spaceSettings = (await loadSpace(space)).settings || {};
   } catch (err) {
     logger.warn('Failed to load proxy options, using defaults', err);
   }
@@ -43,13 +44,15 @@ export async function startProxy(options: ProxyStartOptions): Promise<ChildProce
     SELF_ADDRESS: `http://localhost:${port}`,
     RCPWD: randomUUID(),
     FETCH_TIMEOUT: '1000',
-    UPSTREAM_PROXY: proxyOptions?.useUpstreamProxy ? proxyOptions.upstreamProxyAddress : undefined,
+    UPSTREAM_PROXY: spaceSettings?.useUpstreamProxy
+      ? spaceSettings.upstreamProxyAddress
+      : undefined,
     APP_VERSION: 'wip',
     CA_KEY_PATH: caKeyPath,
     CA_CRT_PATH: caCrtPath,
-    OFFLINE_MODE: boolToEnv(proxyOptions?.offline),
-    ALLOW_LARGE: boolToEnv(proxyOptions?.allowLarge),
-    ALLOW_MEDIA: boolToEnv(proxyOptions?.allowMedia),
+    OFFLINE_MODE: boolToEnv(spaceSettings?.offline),
+    ALLOW_LARGE: boolToEnv(spaceSettings?.allowLarge),
+    ALLOW_MEDIA: boolToEnv(spaceSettings?.allowMedia),
   };
 
   const proxyChildProcess = fork(proxyBundleFilePath, {
@@ -69,13 +72,11 @@ export async function startProxy(options: ProxyStartOptions): Promise<ChildProce
     logger.error('Proxy process error', err);
   });
 
-  proxyChildProcess.on('message', (msg) => {
-    logger.debug('child->parent', msg);
-  });
-
   logger.info('Proxy started');
 
   await waitProcessPort(proxyChildProcess, port);
+
+  proxyChildProcess.on('close', onClose);
 
   return proxyChildProcess;
 }
