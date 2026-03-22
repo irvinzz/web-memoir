@@ -1,5 +1,5 @@
 import { join } from 'node:path';
-import { readdir, writeFile } from 'node:fs/promises';
+import { cp, readdir, writeFile } from 'node:fs/promises';
 
 import { BrowserWindow, dialog } from 'electron';
 import { create as createTar } from 'tar';
@@ -12,6 +12,7 @@ import { spawnAsync } from '../process';
 import { resourcesDir } from '../const';
 import { SpaceManifest } from './interfaces';
 import { loadSpace } from './settings';
+import { getChromeProfilePath } from '../browser';
 
 export async function exportSpace(mainWindow: BrowserWindow, spaceName: string): Promise<void> {
   const result = await dialog.showOpenDialog(mainWindow, {
@@ -21,7 +22,10 @@ export async function exportSpace(mainWindow: BrowserWindow, spaceName: string):
   const destinationFolder = result.filePaths[0];
   if (!destinationFolder) return;
   const dbInfo = await getDBInstance();
+  const spaceSettings = (await loadSpace(spaceName)).settings;
   await runInTmpFolder(async (dumpTmpPath) => {
+    const chromeProfilePath = getChromeProfilePath(spaceName);
+    await cp(chromeProfilePath, join(dumpTmpPath, 'chrome-profile'), { recursive: true });
     await spawnAsync(
       join(resourcesDir, 'mongodb-tools', 'bin', 'mongodump'),
       [
@@ -34,7 +38,6 @@ export async function exportSpace(mainWindow: BrowserWindow, spaceName: string):
       ],
       'mongodump'
     );
-    const spaceSettings = (await loadSpace(spaceName)).settings;
     const manifest: SpaceManifest = {
       name: spaceName,
       timeStamp: new Date().toISOString(),
@@ -43,7 +46,7 @@ export async function exportSpace(mainWindow: BrowserWindow, spaceName: string):
     await writeFile(join(dumpTmpPath, 'space.json'), JSON.stringify(manifest, null, 2));
     const files = await readdir(dumpTmpPath);
     const now = new Date();
-    const timeStamp = `${now.getFullYear()}${(now.getMonth() + 1).toString().padStart(2, '0')}${now.getDay().toString().padStart(2, '0')}`;
+    const timeStamp = `${now.getFullYear()}${(now.getMonth() + 1).toString().padStart(2, '0')}${now.getDate().toString().padStart(2, '0')}`;
     await createTar(
       {
         file: join(destinationFolder, `${spaceName}.${timeStamp}.wmb.tar.gz`),

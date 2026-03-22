@@ -12,7 +12,15 @@ import { stopProcess } from './process';
 
 export const certManager = getCertificateManager(caCrtPath);
 
-const profilesBasePath = join(app.getPath('appData'), 'web-memoir', 'chrome-profiles');
+export const profilesBasePath = join(app.getPath('appData'), 'web-memoir', 'chrome-profiles');
+
+export function transformSpaceNameToProfileName(spaceName: string): string {
+  return `${DBNamePrefix}${spaceName}`;
+}
+
+export function getChromeProfilePath(spaceName: string): string {
+  return join(profilesBasePath, transformSpaceNameToProfileName(spaceName));
+}
 
 interface ChromiumInstance {
   process: ChildProcess;
@@ -22,37 +30,27 @@ const chromeInstances: Map<string, ChromiumInstance> = new Map();
 
 export async function startChromium(options: {
   proxyPort: number;
-  profileName: string;
+  spaceName: string;
 }): Promise<ChildProcess> {
-  const { profileName, proxyPort } = options;
+  const { spaceName, proxyPort } = options;
   const { chromium } = importPlaywright();
 
   const chromiumProcess = spawn(chromium.executablePath(), [
     `--proxy-server=https=localhost:${proxyPort}`,
     `--user-data-dir=${profilesBasePath}`,
-    `--profile-directory=${DBNamePrefix}${profileName}`,
+    `--profile-directory=${transformSpaceNameToProfileName(spaceName)}`,
     `--disable-infobars`,
   ]);
 
-  chromeInstances.set(profileName, {
+  chromeInstances.set(spaceName, {
     process: chromiumProcess,
   });
 
   chromiumProcess.on('close', () => {
-    chromeInstances.delete(profileName);
+    chromeInstances.delete(spaceName);
   });
 
   return chromiumProcess;
-
-  /*
-  await openApp(apps.chrome, {
-    arguments: [
-      `--proxy-server=https=localhost:${proxyPort}`,
-      `--profile-directory=oi-${profileName}`,
-    ],
-    wait: false,
-  });
-  */
 }
 
 export async function stopBrowserInstance(profileName: string): Promise<void> {

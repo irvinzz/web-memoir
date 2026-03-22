@@ -1,4 +1,4 @@
-appId: com.electron.app
+appId: org.web-memoir.app
 productName: web-memoir
 directories:
   buildResources: build
@@ -38,11 +38,21 @@ asarUnpack:
   - '**/node_modules/get-port/**/*'
 win:
   executableName: web-memoir
+  target:
+    - target: nsis
+      arch:
+        - x64
+  icon: 'resources/icon9.ico'
 nsis:
+  oneClick: false
   artifactName: ${name}-${version}-setup.${ext}
-  shortcutName: ${productName}
-  uninstallDisplayName: ${productName}
+  shortcutName: Web Memoir
+  uninstallDisplayName: Web Memoir
   createDesktopShortcut: always
+  installerIcon: 'resources/icon9.ico'
+  uninstallerIcon: 'resources/icon9.ico'
+  installerHeaderIcon: 'resources/icon9.ico'
+  allowToChangeInstallationDirectory: true
 mac:
   entitlementsInherit: build/entitlements.mac.plist
   extendInfo:
@@ -51,6 +61,7 @@ mac:
     - NSDocumentsFolderUsageDescription: Application requests access to the user's Documents folder.
     - NSDownloadsFolderUsageDescription: Application requests access to the user's Downloads folder.
   notarize: false
+  icon: resources/icon9
 dmg:
   artifactName: ${name}-${version}.${ext}
 linux:
@@ -60,6 +71,7 @@ linux:
     # - deb
   maintainer: electronjs.org
   category: Utility
+  icon: resources/icon9
 appImage:
   artifactName: ${name}-${version}.${ext}
 npmRebuild: false

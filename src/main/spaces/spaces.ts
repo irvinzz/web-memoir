@@ -1,10 +1,11 @@
-import { access, constants, readFile, writeFile } from 'node:fs/promises';
+import { access, constants, readFile, rm, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
 import { app } from 'electron';
 
 import { Space, SpacesConfiguration } from '../../shared/Api';
 import { getSpaceDB } from '../db';
+import { getChromeProfilePath } from '../browser';
 
 const settingsFilePath = join(app.getPath('userData'), `spaces.json`);
 
@@ -48,6 +49,7 @@ export async function removeSpace(spaceName: string): Promise<void> {
   const spaceDB = await getSpaceDB(spaceName);
   delete spacesSettings.spaces[spaceName];
   await spaceDB.dropDatabase();
+  await rm(getChromeProfilePath(spaceName), { recursive: true });
   await writeSpacesSettings(spacesSettings);
 }
 

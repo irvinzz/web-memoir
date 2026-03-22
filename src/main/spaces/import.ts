@@ -1,4 +1,4 @@
-import { readdir, readFile } from 'node:fs/promises';
+import { cp, readdir, readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
 import { BrowserWindow, dialog } from 'electron';
@@ -13,9 +13,9 @@ import { spawnAsync } from '../process';
 import { runInTmpFolder } from '../util';
 import { SpaceManifest } from './interfaces';
 import { addSpace, removeSpace } from './spaces';
+import { getChromeProfilePath } from '../browser';
 
 export async function importSpace(mainWindow: BrowserWindow): Promise<void> {
-  const dbInfo = await getDBInstance();
   const result = await dialog.showOpenDialog(mainWindow, {
     properties: ['openFile'],
     filters: [
@@ -32,6 +32,7 @@ export async function importSpace(mainWindow: BrowserWindow): Promise<void> {
   if (!firstSelection.endsWith('.wmb.tar.gz')) {
     throw new Error(`Invalid selection '${firstSelection}'`);
   }
+  const dbInfo = await getDBInstance();
   await runInTmpFolder(async (tmpDir) => {
     await extractTar({
       file: firstSelection,
@@ -50,8 +51,12 @@ export async function importSpace(mainWindow: BrowserWindow): Promise<void> {
     });
 
     const filesList = await readdir(tmpDir);
-    if (filesList.includes(transformSpaceNameToDBName(spaceManifest.name))) {
-      try {
+    try {
+      if (filesList.includes('chrome-profile')) {
+        const chromeProfilePath = getChromeProfilePath(spaceManifest.name);
+        await cp(join(tmpDir, 'chrome-profile'), chromeProfilePath, { recursive: true });
+      }
+      if (filesList.includes(transformSpaceNameToDBName(spaceManifest.name))) {
         await spawnAsync(
           join(resourcesDir, 'mongodb-tools', 'bin', 'mongorestore'),
           [
@@ -63,11 +68,11 @@ export async function importSpace(mainWindow: BrowserWindow): Promise<void> {
           ],
           'mongorestore'
         );
-      } catch (e) {
-        await removeSpace(spaceManifest.name);
-
-        throw e;
       }
+    } catch (e) {
+      await removeSpace(spaceManifest.name);
+
+      throw e;
     }
   });
 }

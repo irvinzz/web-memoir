@@ -57,8 +57,8 @@ handleApiEvent('runCrawler', async (_event, space, startUrl, options) => {
 
 handleApiEvent(
   'startBrowser',
-  async (_event, space, ignoreSSLError): Promise<IPCResponse<START_BROWSER_CODES>> => {
-    const proxyInstance = getProxyInstance(space);
+  async (_event, spaceName, ignoreSSLError): Promise<IPCResponse<START_BROWSER_CODES>> => {
+    const proxyInstance = getProxyInstance(spaceName);
     if (!proxyInstance) {
       return {
         code: 'PROXY_PROCESS_MISSING',
@@ -66,7 +66,7 @@ handleApiEvent(
       };
     }
     if (ignoreSSLError) {
-      await startChromium({ proxyPort: proxyInstance.port, profileName: space });
+      await startChromium({ proxyPort: proxyInstance.port, spaceName });
       return { code: 'OK', message: '' };
     }
 
@@ -79,7 +79,7 @@ handleApiEvent(
       };
     }
 
-    await startChromium({ proxyPort: proxyInstance.port, profileName: space });
+    await startChromium({ proxyPort: proxyInstance.port, spaceName });
 
     return {
       code: 'OK',
