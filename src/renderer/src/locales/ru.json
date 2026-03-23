@@ -1,6 +1,6 @@
 {
 	"about": "О программе",
-	"aboutApplication": "Это приложение позволяет запоминать и позднее воспроизводить ваши веб-взаимодействия.",
+	"aboutApplication": "Приложение для записи и воспроизведения веб запросов.",
 	"add": "Добавить",
 	"agree": "Согласиться",
 	"allowLarge": "Разрешить большие файлы",
@@ -10,7 +10,7 @@
 	"cancel": "Отмена",
 	"certificateMissing": "Сертификат отсутствует",
 	"close": "Закрыть",
-	"commonUseCases": "Распространенные случаи использования:",
+	"commonUseCases": "Типовые сценарии:",
 	"crawlHint": "Используйте Робота для обхода сайта",
 	"crawler": "Краулер",
 	"createNewSpace": "Создать новое пространство",
@@ -50,7 +50,7 @@
 	"upstreamProxy": "Прокси",
 	"useExternalWebBrowser": "Использовать внешний браузер",
 	"webMemoir": "Web Memoir",
-	"websiteDiscontinued": "Сайт прекратил работу",
-	"websiteDown": "Веб-сайт недоступен",
-	"websiteStateInPast": "Состояние веб-сайта в прошлом"
+	"websiteDiscontinued": "Сайт закрыт",
+	"websiteDown": "Временная недоступность сайта",
+	"websiteStateInPast": "Сайт в прошлых версиях"
 }
