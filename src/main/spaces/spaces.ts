@@ -47,9 +47,9 @@ export async function removeSpace(spaceName: string): Promise<void> {
     throw new Error(`Space with name '${spaceName}' not found`);
   }
   const spaceDB = await getSpaceDB(spaceName);
-  delete spacesSettings.spaces[spaceName];
   await spaceDB.dropDatabase();
   await rm(getChromeProfilePath(spaceName), { recursive: true });
+  delete spacesSettings.spaces[spaceName];
   await writeSpacesSettings(spacesSettings);
 }
 

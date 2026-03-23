@@ -167,7 +167,7 @@ function SpaceManager({
                         sx={{ flex: 8 }}
                         key={space.name}
                         size="small"
-                        variant={space === space ? 'contained' : 'outlined'}
+                        variant={space.name === activeSpaceName ? 'contained' : 'outlined'}
                         onClick={() => handleSpaceSelect(space.name)}
                       >
                         {space.name}
@@ -252,7 +252,7 @@ function SpaceManager({
                     })
                   }
                 >
-                  Import
+                  {t('importNewSpace')}
                 </Button>
               </Box>
             </Box>

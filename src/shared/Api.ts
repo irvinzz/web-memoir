@@ -27,17 +27,17 @@ export type INSTALL_CERTIFICATE_CODES = 'OK' | 'UNHANDLED_ERROR';
 export type START_BROWSER_CODES = 'OK' | 'PROXY_PROCESS_MISSING' | CHECK_CERTIFICATE_RESULT_CODES;
 
 export interface Api {
-  startProxyInstance: (space: string) => Promise<ProxyInstanceDescription>;
-  stopProxyInstance: (space: string) => Promise<void>;
-  describeProxyInstance: (space: string) => Promise<ProxyInstanceDescription | null>;
+  startProxyInstance: (spaceName: string) => Promise<ProxyInstanceDescription>;
+  stopProxyInstance: (spaceName: string) => Promise<void>;
+  describeProxyInstance: (spaceName: string) => Promise<ProxyInstanceDescription | null>;
   startBrowser: (
-    space: string,
+    spaceName: string,
     ignoreSSLError: boolean
   ) => Promise<IPCResponse<START_BROWSER_CODES>>;
   installCertificate: () => Promise<void>;
   openCertiticateFolder: () => Promise<void>;
   runCrawler: (
-    space: string,
+    spaceName: string,
     startUrl: string,
     options: { runInForeground: boolean }
   ) => Promise<void>;
@@ -52,6 +52,8 @@ export interface Api {
   importSpace: () => Promise<void>;
 
   applySpaceSettings: (space: string, options: SpaceSettings) => Promise<void>;
+
+  getLocale: () => Promise<string>;
 }
 
 export type SpaceSettings = {

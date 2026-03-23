@@ -1,6 +1,7 @@
 resources/mongodb
 resources/playwright-cache
 resources/mongodb-tools
+resources/proxy.bundle.js
 node_modules
 dist
 out

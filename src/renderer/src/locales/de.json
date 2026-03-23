@@ -20,6 +20,7 @@
     "cancel": "Abbrechen",
     "agree": "Zustimmen",
     "upstreamProxy": "Upstream-Proxy",
+    "provideProxyUrl": "Bitte geben Sie die Proxy-URL an",
     "allowLarge": "Große Dateien erlauben",
     "keepMedia": "Medien behalten",
     "crawl": "Crawl",
@@ -27,5 +28,14 @@
     "spaceNameCannotBeEmpty": "Raumname darf nicht leer sein",
     "spaceWithThisNameAlreadyExists": "Raum mit diesem Namen existiert bereits",
     "searchSpaces": "Räume suchen...",
-    "enterUniqueName": "Geben Sie einen eindeutigen Namen für den neuen Raum ein"
+    "enterUniqueName": "Geben Sie einen eindeutigen Namen für den neuen Raum ein",
+    "aboutApplication": "Diese Anwendung ermöglicht es Ihnen, Ihre Web-Interaktionen zu speichern und später wiederzugeben.",
+    "commonUseCases": "Häufige Anwendungsfälle:",
+    "internetIssues": "Internetprobleme",
+    "internetRestrictions": "Internetbeschränkungen",
+    "websiteDown": "Website nicht erreichbar",
+    "websiteDiscontinued": "Website eingestellt",
+    "websiteStateInPast": "Zustand der Website in der Vergangenheit",
+    "main": "Hauptseite",
+    "about": "Über"
 }

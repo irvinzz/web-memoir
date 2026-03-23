@@ -55,9 +55,9 @@ export default function SettingsDialog(props: {
   return (
     <>
       <Dialog open={proxyDialogVisible}>
-        <DialogTitle>Upstream Proxy</DialogTitle>
+        <DialogTitle>{t('upstreamProxy')}</DialogTitle>
         <DialogContent>
-          <DialogContentText>Please provide proxy URL</DialogContentText>
+          <DialogContentText>{t('provideProxyUrl')}</DialogContentText>
           <TextField
             error={upstreamProxyValueInvalid}
             placeholder="socks5://127.0.0.1:8001"
@@ -68,13 +68,13 @@ export default function SettingsDialog(props: {
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={onProxyDialogOK}>OK</Button>
+          <Button onClick={onProxyDialogOK}>{t('ok')}</Button>
           <Button
             onClick={() => {
               setProxyDialogVisible(false);
             }}
           >
-            Cancel
+            {t('cancel')}
           </Button>
         </DialogActions>
       </Dialog>
@@ -92,7 +92,7 @@ export default function SettingsDialog(props: {
                 }
                 label={
                   <Typography>
-                    {settings?.offline ? t('offlineModeEnabled') : t('offlineModeEnabled')}
+                    {settings?.offline ? t('offlineModeEnabled') : t('offlineModeDisabled')}
                   </Typography>
                 }
               />
@@ -113,7 +113,7 @@ export default function SettingsDialog(props: {
                     }}
                   />
                 }
-                label={<Typography>Upstream Proxy</Typography>}
+                label={<Typography>{t('upstreamProxy')}</Typography>}
               />
             </ListItem>
             {/* <ListItem alignItems="center">
@@ -124,7 +124,7 @@ export default function SettingsDialog(props: {
                     onChange={(e) => toggleSettings({ allowLarge: e.target.checked })}
                   />
                 }
-                label={<Typography>Allow large</Typography>}
+                label={<Typography>{t('allowLarge')}</Typography>}
               />
             </ListItem> */}
             {/* <ListItem alignItems="center">
@@ -135,7 +135,7 @@ export default function SettingsDialog(props: {
                     onChange={(e) => toggleSettings({ allowMedia: e.target.checked })}
                   />
                 }
-                label={<Typography>Keep Media</Typography>}
+                label={<Typography>{t('keepMedia')}</Typography>}
               />
             </ListItem> */}
             <ListItem alignItems="center">
@@ -168,7 +168,7 @@ export default function SettingsDialog(props: {
                     onChange={(e) => toggleSettings({ allowNetwork: e.target.checked })}
                   />
                 }
-                label={<Typography>Allow network access</Typography>}
+                label={<Typography>{t('allowNetwork')}</Typography>}
               />
             </ListItem> */}
           </List>

@@ -30,9 +30,12 @@ function onDBStopped(): void {
 }
 
 export async function startProxyInstance(options: {
-  space: string;
+  spaceName: string;
 }): Promise<ProxyInstanceDescription> {
-  const { space } = options;
+  const { spaceName } = options;
+  if (proxyInstances.has(spaceName)) {
+    throw new Error(`Proxy [${spaceName}] already started`);
+  }
   const dbInstance = await getDBInstance();
   dbInstance.process.on('close', onDBStopped);
 
@@ -40,14 +43,14 @@ export async function startProxyInstance(options: {
   const proxyPort = await getPort({ port: 3128, host: ipAddress });
   const proxyInstance = await startProxy({
     dbUrl: `mongodb://localhost:${dbInstance.port}`,
-    space: space,
+    spaceName,
     port: proxyPort,
     address: ipAddress,
     onClose(code) {
-      proxyInstances.delete(options.space);
+      proxyInstances.delete(options.spaceName);
     },
   });
-  proxyInstances.set(options.space, {
+  proxyInstances.set(options.spaceName, {
     process: proxyInstance,
     port: proxyPort,
     address: ipAddress,
@@ -62,13 +65,13 @@ export async function startProxyInstance(options: {
 }
 
 export async function stopProxyInstances(
-  options: { space: string } | { allSpaces: true }
+  options: { spaceName: string } | { allSpaces: true }
 ): Promise<void> {
   const spacesToStop = proxyInstances.keys().filter((space) => {
     if ('allSpaces' in options) {
       return true;
     } else if ('space' in options) {
-      return options.space === space;
+      return options.spaceName === space;
     }
     return false;
   });
@@ -94,14 +97,14 @@ async function stopProxyInstance(space: string): Promise<void> {
 }
 
 export async function applySpaceSettings(
-  options: { space: string },
+  options: { spaceName: string },
   newProxyOptions: SpaceSettings
 ): Promise<void> {
-  const { space } = options;
-  await writeSpaceSettings(space, newProxyOptions);
-  if (getProxyInstance(space)) {
-    await stopProxyInstance(space);
-    await startProxyInstance({ space });
+  const { spaceName } = options;
+  await writeSpaceSettings(spaceName, newProxyOptions);
+  if (getProxyInstance(spaceName)) {
+    await stopProxyInstance(spaceName);
+    await startProxyInstance({ spaceName });
   }
 }
 

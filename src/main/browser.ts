@@ -33,6 +33,10 @@ export async function startChromium(options: {
   spaceName: string;
 }): Promise<ChildProcess> {
   const { spaceName, proxyPort } = options;
+  const chromeInstance = chromeInstances.get(spaceName);
+  if (chromeInstance) {
+    throw new Error(`Browser for [${spaceName}] is running with PID:${chromeInstance.process.pid}`);
+  }
   const { chromium } = importPlaywright();
 
   const chromiumProcess = spawn(chromium.executablePath(), [

@@ -30,21 +30,23 @@ function handleApiEvent<K extends keyof Api>(name: K, handler: ToHandler<Api[K]>
   return ipcMain.handle(name, handler);
 }
 
-handleApiEvent('applySpaceSettings', async (_event, space, newSettings) => {
-  return applySpaceSettings({ space }, newSettings);
+handleApiEvent('applySpaceSettings', async (_event, spaceName, newSettings) => {
+  return applySpaceSettings({ spaceName }, newSettings);
 });
 
-handleApiEvent('startProxyInstance', async (_event, space) => {
-  return startProxyInstance({ space });
+handleApiEvent('startProxyInstance', async (_event, spaceName) => {
+  return startProxyInstance({ spaceName: spaceName });
 });
 
-handleApiEvent('stopProxyInstance', async (_event, space) => {
-  await stopProxyInstances({ space });
+handleApiEvent('stopProxyInstance', async (_event, spaceName) => {
+  await stopProxyInstances({ spaceName });
 });
 
-handleApiEvent('runCrawler', async (_event, space, startUrl, options) => {
-  const proxyInstance = getProxyInstance(space);
-  if (!proxyInstance) throw new Error(`Proxy instance stopped`);
+handleApiEvent('runCrawler', async (_event, spaceName, startUrl, options) => {
+  const proxyInstance = getProxyInstance(spaceName);
+  if (!proxyInstance) {
+    throw new Error(`Proxy instance for space '${spaceName}' is not running`);
+  }
   await crawlWebsite({
     startUrl,
     proxyUrl: `http://localhost:${proxyInstance.port}`,
@@ -92,8 +94,8 @@ handleApiEvent('installCertificate', async () => {
   await installCertificate();
 });
 
-handleApiEvent('describeProxyInstance', async (_event, space) => {
-  const instance = getProxyInstance(space);
+handleApiEvent('describeProxyInstance', async (_event, spaceName) => {
+  const instance = getProxyInstance(spaceName);
   if (!instance) return null;
   return { port: instance.port, ip: instance.address };
 });
@@ -139,4 +141,9 @@ handleApiEvent('exportSpace', async (_event, spaceName) => {
 
 handleApiEvent('importSpace', async () => {
   return importSpace(mainWindow!);
+});
+
+handleApiEvent('getLocale', async () => {
+  const detecetedLocale = app.getLocale();
+  return detecetedLocale;
 });

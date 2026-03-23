@@ -84,10 +84,10 @@ function Main(): React.JSX.Element {
     startBrowser(true);
   };
 
-  const handleInstallCertificeAgree = async (): Promise<void> => {
-    setInstallCertificateConfirmationDialogVisible(false);
+  const handleInstallCertificateAgree = async (): Promise<void> => {
     await window.api.installCertificate();
     await startBrowser(false);
+    setInstallCertificateConfirmationDialogVisible(false);
   };
 
   const handleSpaceChange = (spaceName: string): void => {
@@ -207,7 +207,7 @@ function Main(): React.JSX.Element {
               {t('cancel')}
             </Button>
             <Button
-              onClick={() => handleAsyncAction(() => handleInstallCertificeAgree())}
+              onClick={() => handleAsyncAction(() => handleInstallCertificateAgree())}
               autoFocus
             >
               {t('agree')}

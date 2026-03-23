@@ -15,30 +15,38 @@ function About(): React.JSX.Element {
       <Typography variant="body1" sx={{ display: 'flex', justifyContent: 'center' }}>
         <div>
           <Typography variant="h6" gutterBottom>
-            This application allows you to memorize and later reproduce your web interactions.
+            {t('aboutApplication')}
           </Typography>
           <Typography variant="subtitle1" gutterBottom>
-            Common use cases include:
+            {t('commonUseCases')}
           </Typography>
           <List dense>
             <ListItem disableGutters>
-              <ListItemText primary="Internet issues" />
+              <ListItemText primary={t('internetIssues')} />
             </ListItem>
             <ListItem disableGutters>
-              <ListItemText primary="Internet restrictions" />
+              <ListItemText primary={t('internetRestrictions')} />
             </ListItem>
             <ListItem disableGutters>
-              <ListItemText primary="Website down" />
+              <ListItemText primary={t('websiteDown')} />
             </ListItem>
             <ListItem disableGutters>
-              <ListItemText primary="Website discontinued" />
+              <ListItemText primary={t('websiteDiscontinued')} />
             </ListItem>
             <ListItem disableGutters>
-              <ListItemText primary="Website state in the past" />
+              <ListItemText primary={t('websiteStateInPast')} />
             </ListItem>
           </List>
         </div>
       </Typography>
+
+      {/*
+      <ul className="versions">
+        <li className="electron-version">Electron v{versions.electron}</li>
+        <li className="chrome-version">Chromium v{versions.chrome}</li>
+        <li className="node-version">Node v{versions.node}</li>
+      </ul>
+      */}
       {/*
       <Button
         onClick={() => {
@@ -57,4 +65,3 @@ function About(): React.JSX.Element {
 }
 
 export default About;
-

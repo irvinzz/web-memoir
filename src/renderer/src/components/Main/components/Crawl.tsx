@@ -44,7 +44,7 @@ export function CrawlDialog(props: {
     <Dialog open={open}>
       <DialogTitle>{t('crawler')}</DialogTitle>
       <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-        <DialogContentText>Please provide start URL</DialogContentText>
+        <DialogContentText>{t('enterUrl')}</DialogContentText>
         <TextField
           error={Boolean(startUrlError)}
           helperText={startUrlError}

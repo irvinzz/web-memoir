@@ -45,20 +45,16 @@ function App(): React.JSX.Element {
           <LoadingMask />
           <AppBar position="static">
             <Tabs value={tabIndex} onChange={handleTabChange}>
-              <Tab label="Main" icon={<CloudOffIcon />} iconPosition="start" />
-              <Tab label="About" icon={<InfoIcon />} iconPosition="start" />
+              <Tab label={t('main')} icon={<CloudOffIcon />} iconPosition="start" />
+              <Tab label={t('about')} icon={<InfoIcon />} iconPosition="start" />
             </Tabs>
           </AppBar>
-          {(
-            <>
-              <TabPanel value={tabIndex} index={0}>
-                <Main />
-              </TabPanel>
-              <TabPanel value={tabIndex} index={1}>
-                <About />
-              </TabPanel>
-            </>
-          )}
+          <TabPanel value={tabIndex} index={0}>
+            <Main />
+          </TabPanel>
+          <TabPanel value={tabIndex} index={1}>
+            <About />
+          </TabPanel>
         </LoadingProvider>
       </ThemeProvider>
     </>

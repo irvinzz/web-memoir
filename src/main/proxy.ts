@@ -14,7 +14,7 @@ import { loadSpace } from './spaces';
 const logger = createLogger('proxy');
 
 export interface ProxyStartOptions {
-  space: string;
+  spaceName: string;
   port: number;
   address: string;
   dbUrl: string;
@@ -22,14 +22,14 @@ export interface ProxyStartOptions {
 }
 
 export async function startProxy(options: ProxyStartOptions): Promise<ChildProcess> {
-  const { dbUrl, space, port, onClose } = options;
+  const { dbUrl, spaceName, port, onClose } = options;
   await createRootCA();
 
   const proxyBundleFilePath = join(resourcesDir, 'proxy.bundle.js');
 
   let spaceSettings: SpaceSettings = {};
   try {
-    spaceSettings = (await loadSpace(space)).settings || {};
+    spaceSettings = (await loadSpace(spaceName)).settings || {};
   } catch (err) {
     logger.warn('Failed to load proxy options, using defaults', err);
   }
@@ -40,7 +40,7 @@ export async function startProxy(options: ProxyStartOptions): Promise<ChildProce
     PORT: port.toString(),
     HOST: '127.0.0.1',
     DB_URL: dbUrl,
-    DB_NAME: transformSpaceNameToDBName(space),
+    DB_NAME: transformSpaceNameToDBName(spaceName),
     SELF_ADDRESS: `http://localhost:${port}`,
     RCPWD: randomUUID(),
     FETCH_TIMEOUT: '1000',

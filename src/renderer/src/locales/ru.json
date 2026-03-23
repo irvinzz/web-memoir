@@ -1,4 +1,6 @@
 {
+    "main": "Главная",
+    "about": "О программе",
     "space": "пространство",
     "selectOrCreateSpace": "Выберите или создайте пространство",
     "availableSpaces": "Доступные пространства",
@@ -20,6 +22,7 @@
     "cancel": "Отмена",
     "agree": "Согласиться",
     "upstreamProxy": "Upstream прокси",
+    "provideProxyUrl": "Пожалуйста, укажите URL прокси",
     "allowLarge": "Разрешить большие файлы",
     "keepMedia": "Хранить медиа",
     "crawl": "Краулить",
@@ -27,5 +30,12 @@
     "spaceNameCannotBeEmpty": "Имя пространства не может быть пустым",
     "spaceWithThisNameAlreadyExists": "Пространство с таким именем уже существует",
     "searchSpaces": "Искать пространства...",
-    "enterUniqueName": "Введите уникальное имя для нового пространства"
+    "enterUniqueName": "Введите уникальное имя для нового пространства",
+    "aboutApplication": "Это приложение позволяет запоминать и позднее воспроизводить ваши веб-взаимодействия.",
+    "commonUseCases": "Распространенные случаи использования:",
+    "internetIssues": "Проблемы с интернетом",
+    "internetRestrictions": "Ограничения в интернете",
+    "websiteDown": "Веб-сайт недоступен",
+    "websiteDiscontinued": "Веб-сайт прекратил работу",
+    "websiteStateInPast": "Состояние веб-сайта в прошлом"
 }

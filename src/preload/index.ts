@@ -25,6 +25,7 @@ const api: Api = {
   setActiveSpace: (spaceName) => ipcRenderer.invoke('setActiveSpace', spaceName),
   exportSpace: (spaceName) => ipcRenderer.invoke('exportSpace', spaceName),
   importSpace: () => ipcRenderer.invoke('importSpace'),
+  getLocale: () => ipcRenderer.invoke('getLocale'),
 };
 
 // Use `contextBridge` APIs to expose Electron APIs to

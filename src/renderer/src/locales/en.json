@@ -1,4 +1,6 @@
 {
+    "main": "Main",
+    "about": "About",
     "space": "Space",
     "selectOrCreateSpace": "Select or Create Space",
     "availableSpaces": "Available Spaces",
@@ -27,6 +29,8 @@
     "cancel": "Cancel",
     "agree": "Agree",
     "upstreamProxy": "Upstream Proxy",
+    "provideProxyUrl": "Please provide proxy URL",
+    "enterUrl": "Enter URL",
     "allowLarge": "Allow large",
     "keepMedia": "Keep Media",
     "crawl": "Crawl",
@@ -42,5 +46,12 @@
     "spaceNameCannotBeEmpty": "Space name cannot be empty",
     "spaceWithThisNameAlreadyExists": "Space with this name already exists",
     "searchSpaces": "Search spaces...",
-    "enterUniqueName": "Enter a unique name"
+    "enterUniqueName": "Enter a unique name",
+    "aboutApplication": "This application allows you to memorize and later reproduce your web interactions.",
+    "commonUseCases": "Common use cases include:",
+    "internetIssues": "Internet issues",
+    "internetRestrictions": "Internet restrictions",
+    "websiteDown": "Website down",
+    "websiteDiscontinued": "Website discontinued",
+    "websiteStateInPast": "Website state in the past"
 }
