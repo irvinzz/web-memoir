@@ -53,7 +53,7 @@ async function startDBInstance(): Promise<{ port: number; process: ChildProcess 
   const binName = osPlatform() === 'win32' ? 'mongod.exe' : 'mongod';
   const binPath = join(mongoDir, manifest!.binDir, binName);
 
-  const dataPath = join(app.getPath('appData'), 'offline-internet', 'mongodb-data');
+  const dataPath = join(app.getPath('appData'), 'web-memoir', 'mongodb-data');
 
   await mkdir(dataPath, { recursive: true });
 
@@ -83,12 +83,12 @@ async function startDBInstance(): Promise<{ port: number; process: ChildProcess 
 
   const process = spawn(binPath, args, { stdio: 'ignore' });
 
-  logger.info('DB Instance started');
-
   process.stdout?.on('data', (msg) => logger.debug(msg.toString()));
   process.stderr?.on('data', (msg) => logger.error(msg.toString()));
 
   await waitProcessPort(process, listenPort);
+
+  logger.info('DB Instance started');
 
   process.on('close', (code) => {
     logger.info(`MongoDB exited with code ${code}`);
@@ -103,8 +103,6 @@ async function startDBInstance(): Promise<{ port: number; process: ChildProcess 
   });
 
   dbChildProcess = process;
-
-  await waitProcessPort(dbChildProcess, listenPort);
 
   return { port: listenPort, process: dbChildProcess };
 }

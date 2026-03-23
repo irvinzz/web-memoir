@@ -44,6 +44,8 @@ export class WindowsCertificateManager extends CertificateManager {
       const { code } = err;
       if (code === 2148073489) {
         return { code: 'CERT_NOT_INSTALLED' };
+      } else if (code === 2147942402) {
+        return { code: 'CERT_NOT_INSTALLED' };
       } else if (code === 2147942480) {
         // file already exported to cwd
         return { code: 'OK' };
