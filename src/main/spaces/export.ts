@@ -24,8 +24,10 @@ export async function exportSpace(mainWindow: BrowserWindow, spaceName: string):
   const dbInfo = await getDBInstance();
   const spaceSettings = (await loadSpace(spaceName)).settings;
   await runInTmpFolder(async (dumpTmpPath) => {
+    /*
     const chromeProfilePath = getChromeProfilePath(spaceName);
     await cp(chromeProfilePath, join(dumpTmpPath, 'chrome-profile'), { recursive: true });
+    */
     await spawnAsync(
       join(resourcesDir, 'mongodb-tools', 'bin', 'mongodump'),
       [

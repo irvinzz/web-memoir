@@ -52,10 +52,12 @@ export async function importSpace(mainWindow: BrowserWindow): Promise<void> {
 
     const filesList = await readdir(tmpDir);
     try {
+      /*
       if (filesList.includes('chrome-profile')) {
         const chromeProfilePath = getChromeProfilePath(spaceManifest.name);
         await cp(join(tmpDir, 'chrome-profile'), chromeProfilePath, { recursive: true });
       }
+      */
       if (filesList.includes(transformSpaceNameToDBName(spaceManifest.name))) {
         await spawnAsync(
           join(resourcesDir, 'mongodb-tools', 'bin', 'mongorestore'),
