@@ -19,9 +19,13 @@ import {
   UploadFileTwoTone,
   DeleteForeverOutlined,
 } from '@mui/icons-material';
-import { isValidSpaceName, Space } from '@shared';
+import { isValidSpaceName, Space, SpaceSettings } from '@shared';
 import { useTranslation } from '@renderer/localization/hook';
 import { useHandleAsyncAction } from '@renderer/hooks/handle-async-action';
+
+import SettingsIcon from '@mui/icons-material/Settings';
+
+import SettingsDialog from './Settings';
 
 interface SpaceManagerProps {
   activeSpaceName: string | undefined;
@@ -30,6 +34,7 @@ interface SpaceManagerProps {
   onSpaceAdd: (spaceName: string, newSpace: Space) => Promise<void>;
   onSpaceRemove: (spaceName: string) => Promise<void>;
   onImportSpace: () => Promise<void>;
+  toggleSettings: (spaceName: string, newSettings: SpaceSettings) => Promise<void>;
 }
 
 function SpaceManager({
@@ -39,6 +44,7 @@ function SpaceManager({
   onSpaceAdd,
   onSpaceRemove,
   onImportSpace,
+  toggleSettings,
 }: SpaceManagerProps): React.JSX.Element {
   const { t } = useTranslation();
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -96,6 +102,8 @@ function SpaceManager({
     });
   };
 
+  const [optionsDialogVisible, setOptionsDialogVisible] = useState(false);
+
   return (
     <>
       <Box
@@ -119,9 +127,31 @@ function SpaceManager({
           <Typography variant="body1" sx={{ fontWeight: 'medium' }}>
             {t('space')}:
           </Typography>
-          <Button variant="outlined" color="warning" size="small" onClick={handleOpenDialog}>
-            {activeSpaceName}
-          </Button>
+          <ButtonGroup>
+            <Button variant="outlined" color="warning" size="small" onClick={handleOpenDialog}>
+              {activeSpaceName}
+            </Button>
+            <Button
+              color="info"
+              variant="outlined" 
+              size="small"
+              title={t('settings')}
+              onClick={() => {
+                setOptionsDialogVisible(true);
+              }}
+            >
+              <SettingsIcon />
+            </Button>
+
+          </ButtonGroup>
+          {activeSpaceName && (
+            <SettingsDialog
+              open={optionsDialogVisible}
+              onClose={() => setOptionsDialogVisible(false)}
+              settings={availableSpaces[activeSpaceName]?.settings}
+              toggleSettings={(newSettings) => toggleSettings(activeSpaceName, newSettings)}
+            />
+          )}
         </Box>
       </Box>
 

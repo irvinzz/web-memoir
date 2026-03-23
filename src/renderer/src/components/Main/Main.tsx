@@ -11,7 +11,6 @@ import {
 } from '@mui/material';
 
 import TravelExploreIcon from '@mui/icons-material/TravelExplore';
-import SettingsIcon from '@mui/icons-material/Settings';
 import SmartToyOutlined from '@mui/icons-material/SmartToyOutlined';
 
 import { Space } from '@shared';
@@ -34,7 +33,6 @@ function Main(): React.JSX.Element {
     setInstallCertificateConfirmationDialogVisible,
   ] = useState<boolean>(false);
 
-  const [optionsDialogVisible, setOptionsDialogVisible] = useState(false);
   const [crawlDialogVisible, setCrawlDialogVisible] = useState(false);
 
   const [manualLaunchDialogVisible, setManualLaunchDialogVisible] = useState<{
@@ -104,6 +102,43 @@ function Main(): React.JSX.Element {
     await setActiveSpace(spaceName);
   };
 
+  function onBrowseButtonClicked(mode: 'online' | 'offline') {
+    handleAsyncAction(async () => {
+      if (!activeSpaceName) return;
+      if (mode === 'offline') {
+        if (!spaces[activeSpaceName].settings?.offline) {
+          await toggleSettings(activeSpaceName, { offline: true });
+        }
+      } else if (mode === 'online') {
+        if (spaces[activeSpaceName].settings?.offline) {
+          await toggleSettings(activeSpaceName, { offline: false });
+        }
+      }
+      if (resolvedServiceEnabled) {
+        await disableService();
+      } else {
+        const startResult = await startService();
+        if (startResult.code === 'MSVC_RUNTIME_MISSING') {
+          alert(
+            [
+              'MSVC Runtime missing',
+              `Please install it first 'https://aka.ms/vs/17/release/vc_redist.x64.exe'`,
+            ].join('\n'),
+          );
+        } else if (startResult.code === 'OK') {
+          if (spaces[activeSpaceName!].settings?.customBrowser) {
+            setManualLaunchDialogVisible({
+              visible: true,
+              port: startResult.data!.port,
+            });
+          } else {
+            await startBrowser();
+          }
+        }
+      }
+    });
+  }
+
   return (
     <>
       <Box>
@@ -114,6 +149,7 @@ function Main(): React.JSX.Element {
           onSpaceAdd={handleAddSpace}
           onSpaceRemove={(space) => removeSpace(space)}
           onImportSpace={() => importSpace()}
+          toggleSettings={toggleSettings}
         />
       </Box>
       <Box
@@ -125,104 +161,78 @@ function Main(): React.JSX.Element {
           flexDirection: 'column',
         }}
       >
-        <ButtonGroup variant="contained">
+        <Box>
+          <ButtonGroup variant="contained">
+            <Button
+              variant="contained"
+              color={resolvedServiceEnabled ? 'error' : 'primary'}
+              startIcon={<TravelExploreIcon />}
+              onClick={() => {
+                onBrowseButtonClicked('online');
+              }}
+            >
+              {resolvedServiceEnabled ? t('stop') : t('browseOnline')}
+            </Button>
+            {manualLaunchDialogVisible && (
+              <ManualLaunchDialog
+                port={manualLaunchDialogVisible.port}
+                onClose={() => setManualLaunchDialogVisible(null)}
+              />
+            )}
+            <Button
+              variant="contained"
+              color="secondary"
+              title={t('crawlHint')}
+              onClick={() => {
+                setCrawlDialogVisible(true);
+              }}
+            >
+              <SmartToyOutlined />
+            </Button>
+            {activeSpaceName && (
+              <CrawlDialog
+                open={crawlDialogVisible}
+                onClose={() => setCrawlDialogVisible(false)}
+                onOk={async (startUrl, runInForeground) => {
+                  if (!resolvedServiceEnabled) {
+                    await startService();
+                  }
+                  await window.api.runCrawler(activeSpaceName, startUrl, { runInForeground });
+                }}
+              />
+            )}
+          </ButtonGroup>
+          {/* Install certificate */}
+          <Dialog open={installCertificateConfirmationDialogVisible}>
+            <DialogTitle>{t('certificateMissing')}</DialogTitle>
+            <DialogContent>
+              <DialogContentText>{t('letsInstallCertificate')}</DialogContentText>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={() => handleAsyncAction(() => handleInstallCertificateCancel())}>
+                {t('cancel')}
+              </Button>
+              <Button
+                onClick={() => handleAsyncAction(() => handleInstallCertificateAgree())}
+                autoFocus
+              >
+                {t('agree')}
+              </Button>
+            </DialogActions>
+          </Dialog>
+        </Box>
+        <Box>
           <Button
             variant="contained"
-            color={resolvedServiceEnabled ? 'error' : 'primary'}
+            color={resolvedServiceEnabled ? 'error' : 'warning'}
             startIcon={<TravelExploreIcon />}
             onClick={() => {
-              handleAsyncAction(async () => {
-                if (resolvedServiceEnabled) {
-                  await disableService();
-                } else {
-                  const startResult = await startService();
-                  if (startResult.code === 'MSVC_RUNTIME_MISSING') {
-                    alert(
-                      [
-                        'MSVC Runtime missing',
-                        `Please install it first 'https://aka.ms/vs/17/release/vc_redist.x64.exe'`,
-                      ].join('\n'),
-                    );
-                  } else if (startResult.code === 'OK') {
-                    if (spaces[activeSpaceName!].settings?.customBrowser) {
-                      setManualLaunchDialogVisible({
-                        visible: true,
-                        port: startResult.data!.port,
-                      });
-                    } else {
-                      await startBrowser();
-                    }
-                  }
-                }
-              });
+              onBrowseButtonClicked('offline');
             }}
           >
-            {resolvedServiceEnabled ? t('stop') : t('browse')}
+            {resolvedServiceEnabled ? t('stop') : t('browseOffline')}
           </Button>
-          {manualLaunchDialogVisible && (
-            <ManualLaunchDialog
-              port={manualLaunchDialogVisible.port}
-              onClose={() => setManualLaunchDialogVisible(null)}
-            />
-          )}
-          <Button
-            color="info"
-            title={t('settings')}
-            onClick={() => {
-              setOptionsDialogVisible(true);
-            }}
-          >
-            <SettingsIcon />
-          </Button>
-          {activeSpaceName && (
-            <SettingsDialog
-              open={optionsDialogVisible}
-              onClose={() => setOptionsDialogVisible(false)}
-              settings={spaces[activeSpaceName]?.settings}
-              toggleSettings={(newSettings) => toggleSettings(activeSpaceName, newSettings)}
-            />
-          )}
-          <Button
-            variant="contained"
-            color="secondary"
-            title={t('crawlHint')}
-            onClick={() => {
-              setCrawlDialogVisible(true);
-            }}
-          >
-            <SmartToyOutlined />
-          </Button>
-          {activeSpaceName && (
-            <CrawlDialog
-              open={crawlDialogVisible}
-              onClose={() => setCrawlDialogVisible(false)}
-              onOk={async (startUrl, runInForeground) => {
-                if (!resolvedServiceEnabled) {
-                  await startService();
-                }
-                await window.api.runCrawler(activeSpaceName, startUrl, { runInForeground });
-              }}
-            />
-          )}
-        </ButtonGroup>
-        {/* Install certificate */}
-        <Dialog open={installCertificateConfirmationDialogVisible}>
-          <DialogTitle>{t('certificateMissing')}</DialogTitle>
-          <DialogContent>
-            <DialogContentText>{t('letsInstallCertificate')}</DialogContentText>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => handleAsyncAction(() => handleInstallCertificateCancel())}>
-              {t('cancel')}
-            </Button>
-            <Button
-              onClick={() => handleAsyncAction(() => handleInstallCertificateAgree())}
-              autoFocus
-            >
-              {t('agree')}
-            </Button>
-          </DialogActions>
-        </Dialog>
+        </Box>
       </Box>
     </>
   );

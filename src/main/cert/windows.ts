@@ -1,7 +1,6 @@
 import { readFile, unlink } from 'node:fs/promises';
 import * as forge from 'node-forge';
 
-import * as certCa from '../cert-ca';
 import { CertificateManager } from './manager';
 import {
   CHECK_CERTIFICATE_RESULT_CODES,
@@ -31,7 +30,7 @@ export class WindowsCertificateManager extends CertificateManager {
     const referenceSerialNumber = referenceCertificate.serialNumber;
     const exportedCertFileName = referenceSerialNumber + '.crt';
     const { err, stdout } = await execAsync(
-      `certutil -user -store -f "${certCa.CERT_NAME}" ${referenceSerialNumber} ${exportedCertFileName}`
+      `certutil -user -store -f "Root" ${referenceSerialNumber} ${exportedCertFileName}`
     );
     try {
       await unlink(exportedCertFileName);
@@ -59,7 +58,7 @@ export class WindowsCertificateManager extends CertificateManager {
 
   async installCertificate(): Promise<IPCResponse<INSTALL_CERTIFICATE_CODES>> {
     const { err, stdout, stderr } = await execAsync(
-      `certutil -v -user -addstore -f "${certCa.CERT_NAME}" ${this.certPath}`
+      `certutil -v -user -addstore -f "Root" ${this.certPath}`
     );
 
     if (err) {
@@ -74,7 +73,7 @@ export class WindowsCertificateManager extends CertificateManager {
     const referenceCertificate = forge.pki.certificateFromPem(referenceCertificateFileContent);
     const referenceSerialNumber = referenceCertificate.serialNumber;
     const { err } = await execAsync(
-      `certutil -v -user -delstore "${certCa.CERT_NAME}" "${referenceSerialNumber}"`
+      `certutil -v -user -delstore "Root" "${referenceSerialNumber}"`
     );
     if (err) {
       throw new Error(`Can't uninstall certificate: exitCode = [${err.code}]`);
