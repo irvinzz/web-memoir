@@ -1,7 +1,8 @@
-export interface IPCResponse<CODES extends string> {
+export interface IPCResponse<CODES extends string, PAYLOAD = void> {
   code: CODES;
   message?: string;
   error?: any;
+  data?: PAYLOAD;
 }
 
 export interface Space {
@@ -25,9 +26,11 @@ export type CHECK_CERTIFICATE_RESULT_CODES =
   | 'UNHANDLED_ERROR';
 export type INSTALL_CERTIFICATE_CODES = 'OK' | 'UNHANDLED_ERROR';
 export type START_BROWSER_CODES = 'OK' | 'PROXY_PROCESS_MISSING' | CHECK_CERTIFICATE_RESULT_CODES;
+export type START_DB_CODES = 'OK' | 'MSVC_RUNTIME_MISSING';
+export type START_SERVICE_CODES = START_DB_CODES;
 
 export interface Api {
-  startProxyInstance: (spaceName: string) => Promise<ProxyInstanceDescription>;
+  startProxyInstance: (spaceName: string) => Promise<IPCResponse<START_SERVICE_CODES, ProxyInstanceDescription>>;
   stopProxyInstance: (spaceName: string) => Promise<void>;
   describeProxyInstance: (spaceName: string) => Promise<ProxyInstanceDescription | null>;
   startBrowser: (

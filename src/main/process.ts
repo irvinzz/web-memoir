@@ -36,8 +36,11 @@ export async function waitProcessPort(process: ChildProcess, port: number): Prom
     (async () => {
       const outputChunks: Buffer[] = [];
 
-      function onClose(): void {
-        reject(Buffer.concat(outputChunks).toString());
+      function onClose(exitCode: number | null): void {
+        reject({
+          exitCode,
+          output: Buffer.concat(outputChunks).toString(),
+        });
       }
       function onOutputData(chunk: Buffer): void {
         outputChunks.push(chunk);
@@ -53,11 +56,16 @@ export async function waitProcessPort(process: ChildProcess, port: number): Prom
         timeout: 6000,
         output: 'silent',
       });
+
       process.removeListener('close', onClose);
       process.stdout?.removeListener('data', onOutputData);
       process.stderr?.removeListener('data', onOutputData);
       return process;
-    })().then(resolve);
+    })().then(process => {
+      if (!process.exitCode) {
+        resolve(process);
+      }
+    });
   });
 }
 

@@ -3,8 +3,8 @@ import { ChildProcess } from 'node:child_process';
 import { app } from 'electron';
 import getPort from 'get-port';
 
-import { ProxyInstanceDescription, SpaceSettings } from '../shared/Api';
-import { getDBInstance, getRunningDBInstance } from './db';
+import { IPCResponse, ProxyInstanceDescription, SpaceSettings, START_SERVICE_CODES } from '../shared/Api';
+import { DBInstanceDescription, getDBInstance, getRunningDBInstance } from './db';
 import { startProxy } from './proxy';
 import { createLogger } from './logger';
 import { writeSpaceSettings } from './spaces';
@@ -31,12 +31,23 @@ function onDBStopped(): void {
 
 export async function startProxyInstance(options: {
   spaceName: string;
-}): Promise<ProxyInstanceDescription> {
+}): Promise<IPCResponse<START_SERVICE_CODES, ProxyInstanceDescription>> {
   const { spaceName } = options;
   if (proxyInstances.has(spaceName)) {
     throw new Error(`Proxy [${spaceName}] already started`);
   }
-  const dbInstance = await getDBInstance();
+  let dbInstance: DBInstanceDescription;
+  try {
+    dbInstance = await getDBInstance();
+  } catch (e) {
+    if (typeof e === 'object' && e !== null && 'exitCode' in e && e.exitCode === 3221225781) {
+      return {
+        code: 'MSVC_RUNTIME_MISSING'
+      };
+    } else {
+      throw e;
+    }
+  }
   dbInstance.process.on('close', onDBStopped);
 
   const ipAddress = '127.0.0.1';
@@ -59,8 +70,11 @@ export async function startProxyInstance(options: {
   logger.info('Service started successfully');
 
   return {
-    ip: ipAddress,
-    port: proxyPort,
+    code: 'OK',
+    data: {
+      ip: ipAddress,
+      port: proxyPort,
+    },
   };
 }
 

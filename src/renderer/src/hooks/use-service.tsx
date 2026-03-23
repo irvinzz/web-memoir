@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useState } from 'react';
 
-import { ProxyInstanceDescription } from '@shared';
+import { IPCResponse, ProxyInstanceDescription, START_SERVICE_CODES } from '@shared';
 
 export function useService(space?: string): {
   enabled: boolean;
-  startService: () => Promise<ProxyInstanceDescription>;
+  startService: () => Promise<IPCResponse<START_SERVICE_CODES, ProxyInstanceDescription>>;
   disableService: () => Promise<void>;
   describeInstance: () => Promise<{ port: number } | null>;
 } {
@@ -36,9 +36,11 @@ export function useService(space?: string): {
     };
   }, [setEnabled]);
 
-  const startService = useCallback(async (): Promise<ProxyInstanceDescription> => {
+  const startService = useCallback(async (): Promise<IPCResponse<START_SERVICE_CODES, ProxyInstanceDescription>> => {
     const result = await window.api.startProxyInstance(space!);
-    setEnabled(true);
+    if (result.code === 'OK') {
+      setEnabled(true);
+    }
     return result;
   }, [space]);
 

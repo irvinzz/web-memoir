@@ -20,12 +20,12 @@ const logger = createLogger('mongod');
 let dbChildProcess: ChildProcess | null = null;
 let listenPort: number | null = null;
 
-interface DBInstance {
+export interface DBInstanceDescription {
   port: number;
   process: ChildProcess;
 }
 
-export function getRunningDBInstance(): DBInstance | null {
+export function getRunningDBInstance(): DBInstanceDescription | null {
   if (dbChildProcess && listenPort) {
     return { port: listenPort, process: dbChildProcess };
   }
@@ -33,7 +33,7 @@ export function getRunningDBInstance(): DBInstance | null {
   return null;
 }
 
-export async function getDBInstance(): Promise<DBInstance> {
+export async function getDBInstance(): Promise<DBInstanceDescription> {
   return getRunningDBInstance() || startDBInstance();
 }
 

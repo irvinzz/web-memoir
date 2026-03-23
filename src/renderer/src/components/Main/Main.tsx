@@ -135,14 +135,23 @@ function Main(): React.JSX.Element {
                 if (resolvedServiceEnabled) {
                   await disableService();
                 } else {
-                  const proxyInstance = await startService();
-                  if (spaces[activeSpaceName!].settings?.customBrowser) {
-                    setManualLaunchDialogVisible({
-                      visible: true,
-                      port: proxyInstance.port,
-                    });
-                  } else {
-                    await startBrowser();
+                  const startResult = await startService();
+                  if (startResult.code === 'MSVC_RUNTIME_MISSING') {
+                    alert(
+                      [
+                        'MSVC Runtime missing',
+                        `Please install it first 'https://aka.ms/vs/17/release/vc_redist.x64.exe'`,
+                      ].join('\n'),
+                    );
+                  } else if (startResult.code === 'OK') {
+                    if (spaces[activeSpaceName!].settings?.customBrowser) {
+                      setManualLaunchDialogVisible({
+                        visible: true,
+                        port: startResult.data!.port,
+                      });
+                    } else {
+                      await startBrowser();
+                    }
                   }
                 }
               });
