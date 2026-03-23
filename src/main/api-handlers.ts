@@ -144,6 +144,6 @@ handleApiEvent('importSpace', async () => {
 });
 
 handleApiEvent('getLocale', async () => {
-  const detecetedLocale = app.getLocale();
-  return detecetedLocale;
+  const detectedLocale = app.getLocale();
+  return detectedLocale;
 });

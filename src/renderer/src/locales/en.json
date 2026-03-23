@@ -42,8 +42,6 @@
 	"serviceStopped": "Service stopped",
 	"settings": "Settings",
 	"space": "Space",
-	"spaceNameCannotBeEmpty": "Space name cannot be empty",
-	"spaceWithThisNameAlreadyExists": "Space with this name already exists",
 	"step1InstallCertificate": "Step 1. Install Certificate",
 	"step2SetHttpsProxy": "Step 2. Set HTTPS Proxy",
 	"stop": "Stop",

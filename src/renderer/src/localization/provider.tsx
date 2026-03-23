@@ -3,23 +3,28 @@ import { useEffect, useState } from 'react';
 import en from '../locales/en.json';
 import de from '../locales/de.json';
 import ru from '../locales/ru.json';
+import fr from '../locales/fr.json';
+import ch from '../locales/ch.json';
 import { TranslationContext } from './context';
-
-type LocalizationKeys = keyof typeof en;
 
 const translations = {
   'en-US': en,
   'de-DE': de,
   'ru-RU': ru,
-  ru,
+  'fr-FR': fr,
+  'zh-CN': ch,
   en,
   de,
+  ru,
+  fr,
+  ch,
 };
 
 type KnownLocales = keyof typeof translations;
 
 export interface TranslactionContextType {
-  t: (input: LocalizationKeys) => string;
+  t: (input: keyof typeof en) => string;
+  locale: string;
 }
 
 export function TranslationProvider({
@@ -27,17 +32,21 @@ export function TranslationProvider({
 }: {
   children: React.ReactNode;
 }): React.JSX.Element {
-  const [locale, setLocale] = useState<KnownLocales>();
-  const t = (key: LocalizationKeys): string => translations[locale || 'en-US'][key] || key;
+  const [locale, setLocale] = useState<KnownLocales>('en-US');
+  const t = (key: string): string => translations[locale][key] || key;
 
   useEffect(() => {
-    if (locale) return;
-    window.api.getLocale().then((locale) => {
-      if (Object.keys(translations).includes(locale)) {
-        setLocale(locale as KnownLocales);
+    window.api.getLocale().then((detectedLocale) => {
+      if (Object.keys(translations).includes(detectedLocale)) {
+        setLocale(detectedLocale as KnownLocales);
+      } else {
+        // Fallback to English if detected locale is not supported
+        setLocale('en-US');
       }
     });
-  }, [locale]);
+  }, []);
 
-  return <TranslationContext.Provider value={{ t }}>{children}</TranslationContext.Provider>;
+  return (
+    <TranslationContext.Provider value={{ t, locale }}>{children}</TranslationContext.Provider>
+  );
 }
