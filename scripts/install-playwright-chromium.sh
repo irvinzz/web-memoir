@@ -6,6 +6,6 @@ set -euo pipefail
 export XDG_CACHE_HOME=./resources/playwright-cache
 # win32
 export LOCALAPPDATA=./resources/playwright-cache
-# darwin
-# set HOME ? to trich homedir()
+# darwin — Playwright uses ~/Library/Caches, override via PLAYWRIGHT_BROWSERS_PATH
+export PLAYWRIGHT_BROWSERS_PATH=./resources/playwright-cache
 npx playwright install chromium

@@ -39,6 +39,10 @@ downloadMongoDbWithVersionInfo({
         join('bin', 'mongos'),
         join('bin', 'install_compass'),
       ],
+      darwin: [
+        join('bin', 'mongos'),
+        join('bin', 'install_compass'),
+      ],
     };
 
     for (const file of filesToUnlink[process.platform]) {
