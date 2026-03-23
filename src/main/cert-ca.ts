@@ -29,7 +29,7 @@ export async function createRootCA(): Promise<void> {
       const attrs = [
         {
           name: 'commonName',
-          value: `Offline Internet at ${os.hostname}`,
+          value: `Web memoir at ${os.hostname}`,
         },
       ];
       caCert.setSubject(attrs);
