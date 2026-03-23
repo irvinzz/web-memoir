@@ -36,7 +36,7 @@ export function ManualLaunchDialog(props: {
 
   return (
     <Dialog open>
-      <DialogTitle>{t('step1InstallCertificate')}</DialogTitle>
+      <DialogTitle>{t('manualLaunchDialogTitle')}</DialogTitle>
       <DialogContent>
         <Box sx={{ p: 3 }}>
           <Stack spacing={2}>

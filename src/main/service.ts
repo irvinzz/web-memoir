@@ -70,14 +70,15 @@ export async function stopProxyInstances(
   const spacesToStop = proxyInstances.keys().filter((space) => {
     if ('allSpaces' in options) {
       return true;
-    } else if ('space' in options) {
+    } else if ('spaceName' in options) {
       return options.spaceName === space;
     }
     return false;
   });
-  for (const space of spacesToStop) {
-    await stopBrowserInstance(space);
-    await stopProxyInstance(space);
+  for (const spaceName of spacesToStop) {
+    await stopBrowserInstance(spaceName);
+    await stopProxyInstance(spaceName);
+    proxyInstances.delete(spaceName);
   }
   if (proxyInstances.size === 0) {
     logger.info('Stopping db instance');

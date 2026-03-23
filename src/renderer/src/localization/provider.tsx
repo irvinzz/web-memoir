@@ -11,6 +11,9 @@ const translations = {
   'en-US': en,
   'de-DE': de,
   'ru-RU': ru,
+  ru,
+  en,
+  de,
 };
 
 type KnownLocales = keyof typeof translations;

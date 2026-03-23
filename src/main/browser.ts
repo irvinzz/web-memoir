@@ -44,6 +44,7 @@ export async function startChromium(options: {
     `--user-data-dir=${profilesBasePath}`,
     `--profile-directory=${transformSpaceNameToProfileName(spaceName)}`,
     `--disable-infobars`,
+    `--no-first-run`,
   ]);
 
   chromeInstances.set(spaceName, {
