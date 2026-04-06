@@ -86,6 +86,17 @@ export default function SettingsDialog(props: {
               <FormControlLabel
                 control={
                   <Switch
+                    checked={!!settings?.autostart}
+                    onChange={(e) => toggleSettings({ autostart: e.target.checked })}
+                  />
+                }
+                label={<Typography>{t('autostart')}</Typography>}
+              />
+            </ListItem>
+            <ListItem alignItems="center">
+              <FormControlLabel
+                control={
+                  <Switch
                     checked={!!settings?.offline}
                     onChange={(e) => toggleSettings({ offline: e.target.checked })}
                   />
@@ -166,13 +177,13 @@ export default function SettingsDialog(props: {
               <FormControlLabel
                 control={
                   <Switch
-                    checked={!!settings?.pinCustomPort}
+                    checked={!!settings?.fixedPort}
                     onChange={(e) => {
                       (async () => {
                         if (e.target.checked) {
                           const answer = await prompt<number>(
                             {
-                              title: t('pinCustomPort'),
+                              title: t('fixedPort'),
                               content: ({ value, onChange }) => (
                                 <>
                                   <TextField
@@ -192,7 +203,7 @@ export default function SettingsDialog(props: {
                                 </>
                               ),
                             },
-                            settings?.pinCustomPort
+                            settings?.fixedPort
                           );
                           if ('cancelled' in answer) {
                             return;
@@ -200,14 +211,14 @@ export default function SettingsDialog(props: {
                           handleAsyncAction(async () => {
                             const port = answer.value;
                             if (port >= 1024 && port <= 65535) {
-                              await toggleSettings({ pinCustomPort: answer.value });
+                              await toggleSettings({ fixedPort: answer.value });
                             } else {
                               throw new Error(`Port must be from 1024 to 65535`);
                             }
                           });
                         } else {
                           handleAsyncAction(async () => {
-                            await toggleSettings({ pinCustomPort: undefined });
+                            await toggleSettings({ fixedPort: undefined });
                           });
                         }
                       })();
@@ -216,7 +227,7 @@ export default function SettingsDialog(props: {
                 }
                 label={
                   <Typography>
-                    {t('pinCustomPort')} {settings?.pinCustomPort && `(${settings?.pinCustomPort})`}
+                    {t('fixedPort')} {settings?.fixedPort && `(${settings?.fixedPort})`}
                   </Typography>
                 }
               />
@@ -225,11 +236,11 @@ export default function SettingsDialog(props: {
               <FormControlLabel
                 control={
                   <Switch
-                    checked={!!settings?.allowNetwork}
-                    onChange={(e) => toggleSettings({ allowNetwork: e.target.checked })}
+                    checked={!!settings?.allowIncomingConnections}
+                    onChange={(e) => toggleSettings({ allowIncomingConnections: e.target.checked })}
                   />
                 }
-                label={<Typography>{t('allowNetworkAccess')}</Typography>}
+                label={<Typography>{t('allowIncomingConnections')}</Typography>}
               />
             </ListItem>
           </List>

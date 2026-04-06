@@ -33,11 +33,21 @@ export function getRunningDBInstance(): DBInstanceDescription | null {
   return null;
 }
 
+let startDbInstancePromise: Promise<DBInstanceDescription> | null = null;
+
 export async function getDBInstance(): Promise<DBInstanceDescription> {
-  return getRunningDBInstance() || startDBInstance();
+  const runningInstance = getRunningDBInstance();
+  if (runningInstance) return runningInstance;
+  if (!startDbInstancePromise) {
+    startDbInstancePromise = startDBInstanceInternal();
+    startDbInstancePromise.then(() => {
+      startDbInstancePromise = null;
+    });
+  }
+  return startDbInstancePromise;
 }
 
-async function startDBInstance(): Promise<{ port: number; process: ChildProcess }> {
+async function startDBInstanceInternal(): Promise<DBInstanceDescription> {
   const mongoDir = join(resourcesDir, 'mongodb');
   const instancePath = join(mongoDir, 'instance.json');
 

@@ -11,9 +11,10 @@ import {
 import { DBInstanceDescription, getDBInstance, getRunningDBInstance } from './db';
 import { startProxy } from './proxy';
 import { createLogger } from './logger';
-import { writeSpaceSettings } from './spaces';
-import { stopBrowserInstance } from './browser';
+import { getSpacesConfiguration, writeSpaceSettings } from './spaces';
+import { startChromium, stopBrowserInstance } from './browser';
 import { stopProcess } from './process';
+import { mainWindow } from './index';
 
 const logger = createLogger('service');
 
@@ -68,6 +69,16 @@ export async function startProxyInstance(options: {
 
   logger.info('Service started successfully');
 
+  const eventData: { spaceName: string; data: ProxyInstanceDescription } = {
+    spaceName,
+    data: {
+      ip: proxyInstance.address,
+      port: proxyInstance.port,
+    },
+  };
+
+  mainWindow?.webContents.send(`proxy.started`, eventData);
+
   return {
     code: 'OK',
     data: {
@@ -102,12 +113,18 @@ export async function stopProxyInstances(
   }
 }
 
-async function stopProxyInstance(space: string): Promise<void> {
-  const proxyProcess = getProxyInstance(space)?.process;
+async function stopProxyInstance(spaceName: string): Promise<void> {
+  const proxyProcess = getProxyInstance(spaceName)?.process;
   if (proxyProcess) {
     await stopProcess(proxyProcess);
   }
-  proxyInstances.delete(space);
+  proxyInstances.delete(spaceName);
+
+  const eventData: { spaceName: string } = {
+    spaceName,
+  };
+
+  mainWindow?.webContents.send(`proxy.started`, eventData);
 }
 
 export async function applySpaceSettings(
@@ -123,6 +140,22 @@ export async function applySpaceSettings(
   }
 }
 
+app.whenReady().then(async function autostart() {
+  const spacesConfigurations = await getSpacesConfiguration();
+  for (const [spaceName, space] of Object.entries(spacesConfigurations.spaces)) {
+    if (space.settings?.autostart) {
+      const proxyInstance = await startProxyInstance({ spaceName });
+      if (proxyInstance.code === 'OK') {
+        if (!space.settings.customBrowser) {
+          await startChromium({
+            spaceName,
+            proxyPort: proxyInstance.data!.port,
+          });
+        }
+      }
+    }
+  }
+});
 app.on('before-quit', async () => {
   await stopProxyInstances({ allSpaces: true });
 });

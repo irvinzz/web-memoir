@@ -102,7 +102,7 @@ function Main(): React.JSX.Element {
     await setActiveSpace(spaceName);
   };
 
-  function onBrowseButtonClicked(mode: 'online' | 'offline') {
+  function onBrowseButtonClicked(mode: 'online' | 'offline'): void {
     handleAsyncAction(async () => {
       if (!activeSpaceName) return;
       if (mode === 'offline') {
@@ -123,7 +123,7 @@ function Main(): React.JSX.Element {
             [
               'MSVC Runtime missing',
               `Please install it first 'https://aka.ms/vs/17/release/vc_redist.x64.exe'`,
-            ].join('\n'),
+            ].join('\n')
           );
         } else if (startResult.code === 'OK') {
           if (spaces[activeSpaceName!].settings?.customBrowser) {

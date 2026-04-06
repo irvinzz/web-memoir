@@ -60,6 +60,7 @@ export interface Api {
 }
 
 export type SpaceSettings = {
+  autostart?: boolean;
   useUpstreamProxy?: boolean;
   upstreamProxyAddress?: string;
   cacheShare?: boolean;
@@ -68,7 +69,7 @@ export type SpaceSettings = {
   offline?: boolean;
   private?: boolean;
   customBrowser?: boolean;
-  pinCustomPort?: number;
-  allowNetwork?: boolean;
+  fixedPort?: number;
+  allowIncomingConnections?: boolean;
   startPage?: string;
 };
