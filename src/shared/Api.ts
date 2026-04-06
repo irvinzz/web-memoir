@@ -68,6 +68,7 @@ export type SpaceSettings = {
   offline?: boolean;
   private?: boolean;
   customBrowser?: boolean;
+  pinCustomPort?: number;
   allowNetwork?: boolean;
   startPage?: string;
 };

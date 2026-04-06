@@ -7,9 +7,23 @@ import {
   CircularProgress,
   Dialog,
   DialogActions,
+  DialogContent,
   DialogTitle,
 } from '@mui/material';
 import CheckIcon from '@mui/icons-material/Check';
+
+import { useTranslation } from '@renderer/localization/hook';
+
+interface PromptOptions<T> {
+  title: string;
+  content: (props: { value: T; onChange: (e: { value: T }) => void }) => React.JSX.Element;
+}
+
+interface PromptDialogProps<T> extends PromptOptions<T> {
+  onOk: (value: T) => void;
+  onCancel: () => void;
+  initialValue?: T;
+}
 
 type LoadingContextType = {
   loading: boolean;
@@ -23,7 +37,10 @@ type LoadingContextType = {
   confirmYes: () => void;
   confirmNo: () => void;
   setConfirmAnswerHandler: (handler: (answer: 'YES' | 'NO') => void) => void;
+  promptDialogProps: PromptDialogProps<any> | null;
+  setPromptDialogProps: (props: PromptDialogProps<any> | null) => void;
 };
+
 const LoadingContext = createContext<LoadingContextType>({
   loading: false,
   setLoading: () => {},
@@ -36,6 +53,8 @@ const LoadingContext = createContext<LoadingContextType>({
   confirmYes: () => {},
   confirmNo: () => {},
   setConfirmAnswerHandler: () => {},
+  promptDialogProps: null,
+  setPromptDialogProps: () => {},
 });
 
 export function LoadingProvider(props: { children?: React.ReactNode }): React.JSX.Element {
@@ -46,6 +65,7 @@ export function LoadingProvider(props: { children?: React.ReactNode }): React.JS
   const [confirmAnswerHandler, setConfirmAnswerHandler] = useState<
     ((answer: 'YES' | 'NO') => void) | null
   >(null);
+  const [promptDialogProps, setPromptDialogProps] = useState<PromptDialogProps<any> | null>(null);
 
   return (
     <LoadingContext.Provider
@@ -67,6 +87,8 @@ export function LoadingProvider(props: { children?: React.ReactNode }): React.JS
           setConfirmDialogVisible(false);
         },
         setConfirmAnswerHandler,
+        promptDialogProps,
+        setPromptDialogProps,
       }}
     >
       {props.children}
@@ -78,8 +100,19 @@ export function useHandleAsyncAction(): {
   handleAsyncAction(cb: () => Promise<void>): void;
   loading: boolean;
   confirm: () => Promise<'YES' | 'NO'>;
+  prompt: <T>(
+    props: PromptOptions<T>,
+    initialValue?: T
+  ) => Promise<{ value: T } | { cancelled: true }>;
 } {
-  const { loading, setLoading, setError, setConfirmDialogVisible, setConfirmAnswerHandler } = useContext(LoadingContext);
+  const {
+    loading,
+    setLoading,
+    setError,
+    setConfirmDialogVisible,
+    setConfirmAnswerHandler,
+    setPromptDialogProps,
+  } = useContext(LoadingContext);
 
   const handleAsyncAction = useCallback(
     async (cb: () => Promise<void>) => {
@@ -111,15 +144,47 @@ export function useHandleAsyncAction(): {
     });
   }, [setConfirmAnswerHandler, setConfirmDialogVisible]);
 
+  const prompt = useCallback(
+    async function <T>(props: PromptOptions<T>, initialValue?: T) {
+      return new Promise<{ value: T } | { cancelled: true }>((resolve) => {
+        setPromptDialogProps({
+          ...props,
+          initialValue,
+          onOk(value: T) {
+            resolve({ value });
+            setPromptDialogProps(null);
+          },
+          onCancel() {
+            resolve({ cancelled: true });
+          },
+        });
+      });
+    },
+    [setPromptDialogProps]
+  );
+
   return {
     handleAsyncAction,
     loading,
     confirm,
+    prompt,
   };
 }
 
-export function LoadingMask(): React.JSX.Element {
-  const { loading, error, setError, confirmDialogVisible, confirmYes, confirmNo } = useContext(LoadingContext);
+export function UIHelpersElement(): React.JSX.Element {
+  const { t } = useTranslation();
+
+  const {
+    loading,
+    error,
+    setError,
+    confirmDialogVisible,
+    confirmYes,
+    confirmNo,
+    promptDialogProps,
+  } = useContext(LoadingContext);
+
+  const [promptValue, setPromptValue] = useState<any>(promptDialogProps?.initialValue);
 
   return (
     <>
@@ -143,6 +208,19 @@ export function LoadingMask(): React.JSX.Element {
         <DialogActions>
           <Button onClick={() => confirmYes()}>Yes</Button>
           <Button onClick={() => confirmNo()}>No</Button>
+        </DialogActions>
+      </Dialog>
+      <Dialog open={!!promptDialogProps}>
+        <DialogTitle>{promptDialogProps?.title}</DialogTitle>
+        <DialogContent>
+          {promptDialogProps?.content({
+            value: promptValue,
+            onChange: (e) => setPromptValue(e.value),
+          })}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => promptDialogProps?.onOk(promptValue)}>{t('ok')}</Button>
+          <Button onClick={promptDialogProps?.onCancel}>{t('cancel')}</Button>
         </DialogActions>
       </Dialog>
     </>

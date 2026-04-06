@@ -2,6 +2,8 @@ import { join } from 'node:path';
 import { ChildProcess, fork } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
 
+import getPort from 'get-port';
+
 import { transformSpaceNameToDBName } from '@shared';
 
 import { resourcesDir } from './const';
@@ -15,14 +17,17 @@ const logger = createLogger('proxy');
 
 export interface ProxyStartOptions {
   spaceName: string;
-  port: number;
-  address: string;
+  portOverride?: number;
   dbUrl: string;
   onClose: (code: number | null) => void;
 }
 
-export async function startProxy(options: ProxyStartOptions): Promise<ChildProcess> {
-  const { dbUrl, spaceName, port, onClose } = options;
+export async function startProxy(options: ProxyStartOptions): Promise<{
+  address: string;
+  port: number;
+  process: ChildProcess;
+}> {
+  const { dbUrl, spaceName, portOverride, onClose } = options;
   await createRootCA();
 
   const proxyBundleFilePath = join(resourcesDir, 'proxy.bundle.js');
@@ -34,14 +39,18 @@ export async function startProxy(options: ProxyStartOptions): Promise<ChildProce
     logger.warn('Failed to load proxy options, using defaults', err);
   }
 
+  const ipAddress = spaceSettings.allowNetwork ? '0.0.0.0' : '127.0.0.1';
+  const proxyPort =
+    portOverride || spaceSettings.pinCustomPort || (await getPort({ port: 3128, host: ipAddress }));
+
   const boolToEnv = (input?: boolean): string => (input ? '1' : '');
 
   const env = {
-    PORT: port.toString(),
-    HOST: '127.0.0.1',
+    PORT: proxyPort.toString(),
+    HOST: ipAddress,
     DB_URL: dbUrl,
     DB_NAME: transformSpaceNameToDBName(spaceName),
-    SELF_ADDRESS: `http://localhost:${port}`,
+    SELF_ADDRESS: `http://localhost:${proxyPort}`,
     RCPWD: randomUUID(),
     FETCH_TIMEOUT: '1000',
     UPSTREAM_PROXY: spaceSettings?.useUpstreamProxy
@@ -74,9 +83,13 @@ export async function startProxy(options: ProxyStartOptions): Promise<ChildProce
 
   logger.info('Proxy started');
 
-  await waitProcessPort(proxyChildProcess, port);
+  await waitProcessPort(proxyChildProcess, proxyPort);
 
   proxyChildProcess.on('close', onClose);
 
-  return proxyChildProcess;
+  return {
+    process: proxyChildProcess,
+    address: ipAddress,
+    port: proxyPort,
+  };
 }

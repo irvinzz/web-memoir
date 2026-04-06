@@ -6,7 +6,7 @@ import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { AppBar, Tabs, Tab, Box, CssBaseline } from '@mui/material';
 
 import Main from './components/Main/Main';
-import { LoadingProvider, LoadingMask } from './hooks/handle-async-action';
+import { LoadingProvider, UIHelpersElement } from './hooks/handle-async-action';
 import About from './components/About';
 import { useTranslation } from './localization/hook';
 
@@ -42,7 +42,7 @@ function App(): React.JSX.Element {
       <ThemeProvider theme={theme}>
         <LoadingProvider>
           <CssBaseline />
-          <LoadingMask />
+          <UIHelpersElement />
           <AppBar position="static">
             <Tabs value={tabIndex} onChange={handleTabChange}>
               <Tab label={t('main')} icon={<CloudOffIcon />} iconPosition="start" />

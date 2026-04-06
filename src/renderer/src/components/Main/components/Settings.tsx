@@ -32,7 +32,7 @@ export default function SettingsDialog(props: {
 
   const { t } = useTranslation();
 
-  const { handleAsyncAction } = useHandleAsyncAction();
+  const { handleAsyncAction, prompt } = useHandleAsyncAction();
 
   const [proxyDialogVisible, setProxyDialogVisible] = useState(false);
   const [upstreamProxyValue, setUpstreamProxyValue] = useState('');
@@ -106,8 +106,10 @@ export default function SettingsDialog(props: {
                       if (e.target.checked) {
                         setProxyDialogVisible(true);
                       } else {
-                        toggleSettings({
-                          useUpstreamProxy: false,
+                        handleAsyncAction(async () => {
+                          await toggleSettings({
+                            useUpstreamProxy: false,
+                          });
                         });
                       }
                     }}
@@ -160,17 +162,76 @@ export default function SettingsDialog(props: {
                 label={<Typography>{t('useExternalWebBrowser')}</Typography>}
               />
             </ListItem>
-            {/* <ListItem alignItems="center">
+            <ListItem alignItems="center">
               <FormControlLabel
                 control={
                   <Switch
-                    checked={!!settings.allowNetwork}
+                    checked={!!settings?.pinCustomPort}
+                    onChange={(e) => {
+                      (async () => {
+                        if (e.target.checked) {
+                          const answer = await prompt<number>(
+                            {
+                              title: t('pinCustomPort'),
+                              content: ({ value, onChange }) => (
+                                <>
+                                  <TextField
+                                    type="number"
+                                    slotProps={{
+                                      htmlInput: {
+                                        min: '1024',
+                                        max: '65535',
+                                      },
+                                    }}
+                                    value={value}
+                                    onChange={(e) => {
+                                      const parsed = Number.parseInt(e.target.value, 10);
+                                      onChange({ value: parsed });
+                                    }}
+                                  />
+                                </>
+                              ),
+                            },
+                            settings?.pinCustomPort
+                          );
+                          if ('cancelled' in answer) {
+                            return;
+                          }
+                          handleAsyncAction(async () => {
+                            const port = answer.value;
+                            if (port >= 1024 && port <= 65535) {
+                              await toggleSettings({ pinCustomPort: answer.value });
+                            } else {
+                              throw new Error(`Port must be from 1024 to 65535`);
+                            }
+                          });
+                        } else {
+                          handleAsyncAction(async () => {
+                            await toggleSettings({ pinCustomPort: undefined });
+                          });
+                        }
+                      })();
+                    }}
+                  />
+                }
+                label={
+                  <Typography>
+                    {t('pinCustomPort')} {settings?.pinCustomPort && `(${settings?.pinCustomPort})`}
+                  </Typography>
+                }
+              />
+            </ListItem>
+            <ListItem alignItems="center">
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={!!settings?.allowNetwork}
                     onChange={(e) => toggleSettings({ allowNetwork: e.target.checked })}
                   />
                 }
-                label={<Typography>{t('allowNetwork')}</Typography>}
+                label={<Typography>{t('allowNetworkAccess')}</Typography>}
               />
-            </ListItem> */}
+            </ListItem>
           </List>
         </DialogContent>
         <DialogActions>

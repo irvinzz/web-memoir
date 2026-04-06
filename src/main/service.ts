@@ -1,9 +1,13 @@
 import { ChildProcess } from 'node:child_process';
 
 import { app } from 'electron';
-import getPort from 'get-port';
 
-import { IPCResponse, ProxyInstanceDescription, SpaceSettings, START_SERVICE_CODES } from '../shared/Api';
+import {
+  IPCResponse,
+  ProxyInstanceDescription,
+  SpaceSettings,
+  START_SERVICE_CODES,
+} from '../shared/Api';
 import { DBInstanceDescription, getDBInstance, getRunningDBInstance } from './db';
 import { startProxy } from './proxy';
 import { createLogger } from './logger';
@@ -31,9 +35,9 @@ function onDBStopped(): void {
 
 export async function startProxyInstance(options: {
   spaceName: string;
-  port?: number;
+  portOverride?: number;
 }): Promise<IPCResponse<START_SERVICE_CODES, ProxyInstanceDescription>> {
-  const { spaceName, port } = options;
+  const { spaceName, portOverride } = options;
   if (proxyInstances.has(spaceName)) {
     throw new Error(`Proxy [${spaceName}] already started`);
   }
@@ -43,7 +47,7 @@ export async function startProxyInstance(options: {
   } catch (e) {
     if (typeof e === 'object' && e !== null && 'exitCode' in e && e.exitCode === 3221225781) {
       return {
-        code: 'MSVC_RUNTIME_MISSING'
+        code: 'MSVC_RUNTIME_MISSING',
       };
     } else {
       throw e;
@@ -51,30 +55,24 @@ export async function startProxyInstance(options: {
   }
   dbInstance.process.on('close', onDBStopped);
 
-  const ipAddress = '127.0.0.1';
-  const proxyPort = port || await getPort({ port: 3128, host: ipAddress });
   const proxyInstance = await startProxy({
     dbUrl: `mongodb://localhost:${dbInstance.port}`,
     spaceName,
-    port: proxyPort,
-    address: ipAddress,
+    portOverride,
     onClose(code) {
       proxyInstances.delete(options.spaceName);
     },
   });
-  proxyInstances.set(options.spaceName, {
-    process: proxyInstance,
-    port: proxyPort,
-    address: ipAddress,
-  });
+
+  proxyInstances.set(options.spaceName, proxyInstance);
 
   logger.info('Service started successfully');
 
   return {
     code: 'OK',
     data: {
-      ip: ipAddress,
-      port: proxyPort,
+      ip: proxyInstance.address,
+      port: proxyInstance.port,
     },
   };
 }
@@ -121,7 +119,7 @@ export async function applySpaceSettings(
   const proxyInstance = getProxyInstance(spaceName);
   if (proxyInstance) {
     await stopProxyInstance(spaceName);
-    await startProxyInstance({ spaceName, port: proxyInstance.port });
+    await startProxyInstance({ spaceName, portOverride: proxyInstance.port });
   }
 }
 

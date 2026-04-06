@@ -42,6 +42,8 @@
 	"serviceStarted": "Service started",
 	"serviceStopped": "Service stopped",
 	"settings": "Settings",
+	"pinCustomPort": "Pin custom port",
+	"allowNetworkAccess": "Allow Network Access",
 	"space": "Space",
 	"step1InstallCertificate": "Step 1. Install Certificate",
 	"step2SetHttpsProxy": "Step 2. Set HTTPS Proxy",
