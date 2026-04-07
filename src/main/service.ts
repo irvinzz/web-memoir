@@ -14,7 +14,7 @@ import { createLogger } from './logger';
 import { getSpacesConfiguration, writeSpaceSettings } from './spaces';
 import { startChromium, stopBrowserInstance } from './browser';
 import { stopProcess } from './process';
-import { mainWindow } from './index';
+import { sendEventToRenderer } from './events';
 
 const logger = createLogger('service');
 
@@ -69,15 +69,13 @@ export async function startProxyInstance(options: {
 
   logger.info('Service started successfully');
 
-  const eventData: { spaceName: string; data: ProxyInstanceDescription } = {
+  sendEventToRenderer('proxy.started', {
     spaceName,
     data: {
       ip: proxyInstance.address,
       port: proxyInstance.port,
     },
-  };
-
-  mainWindow?.webContents.send(`proxy.started`, eventData);
+  });
 
   return {
     code: 'OK',
@@ -120,11 +118,7 @@ async function stopProxyInstance(spaceName: string): Promise<void> {
   }
   proxyInstances.delete(spaceName);
 
-  const eventData: { spaceName: string } = {
-    spaceName,
-  };
-
-  mainWindow?.webContents.send(`proxy.started`, eventData);
+  sendEventToRenderer('proxy.stopped', { spaceName });
 }
 
 export async function applySpaceSettings(

@@ -12,14 +12,14 @@ import { stopProcess } from './process';
 
 export const certManager = getCertificateManager(caCrtPath);
 
-export const profilesBasePath = join(app.getPath('appData'), 'web-memoir', 'chrome-profiles');
+const userDataDirBase = join(app.getPath('appData'), 'web-memoir', 'chrome-profiles');
 
-export function transformSpaceNameToProfileName(spaceName: string): string {
+function transformSpaceNameToProfileName(spaceName: string): string {
   return `${DBNamePrefix}${spaceName}`;
 }
 
-export function getChromeProfilePath(spaceName: string): string {
-  return join(profilesBasePath, transformSpaceNameToProfileName(spaceName));
+export function getSpaceChromeUserDataDir(spaceName: string): string {
+  return join(userDataDirBase, transformSpaceNameToProfileName(spaceName));
 }
 
 interface ChromiumInstance {
@@ -41,8 +41,8 @@ export async function startChromium(options: {
 
   const chromiumProcess = spawn(chromium.executablePath(), [
     `--proxy-server=https=localhost:${proxyPort}`,
-    `--user-data-dir=${profilesBasePath}`,
-    `--profile-directory=${transformSpaceNameToProfileName(spaceName)}`,
+    `--user-data-dir=${getSpaceChromeUserDataDir(spaceName)}`,
+    '--profile-directory=default',
     `--disable-infobars`,
     `--no-first-run`,
     `--restore-last-session`,

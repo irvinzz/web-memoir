@@ -13,7 +13,7 @@ import { spawnAsync } from '../process';
 import { runInTmpFolder } from '../util';
 import { SpaceManifest } from './interfaces';
 import { addSpace, removeSpace } from './spaces';
-import { getChromeProfilePath } from '../browser';
+import { getSpaceChromeUserDataDir } from '../browser';
 
 export async function importSpace(mainWindow: BrowserWindow): Promise<void> {
   const result = await dialog.showOpenDialog(mainWindow, {
@@ -54,7 +54,7 @@ export async function importSpace(mainWindow: BrowserWindow): Promise<void> {
     try {
       /*
       if (filesList.includes('chrome-profile')) {
-        const chromeProfilePath = getChromeProfilePath(spaceManifest.name);
+        const chromeProfilePath = getSpaceChromeUserDataDir(spaceManifest.name);
         await cp(join(tmpDir, 'chrome-profile'), chromeProfilePath, { recursive: true });
       }
       */

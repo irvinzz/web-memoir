@@ -12,7 +12,7 @@ import { spawnAsync } from '../process';
 import { resourcesDir } from '../const';
 import { SpaceManifest } from './interfaces';
 import { loadSpace } from './settings';
-import { getChromeProfilePath } from '../browser';
+import { getSpaceChromeUserDataDir } from '../browser';
 
 export async function exportSpace(mainWindow: BrowserWindow, spaceName: string): Promise<void> {
   const result = await dialog.showOpenDialog(mainWindow, {
@@ -25,7 +25,7 @@ export async function exportSpace(mainWindow: BrowserWindow, spaceName: string):
   const spaceSettings = (await loadSpace(spaceName)).settings;
   await runInTmpFolder(async (dumpTmpPath) => {
     /*
-    const chromeProfilePath = getChromeProfilePath(spaceName);
+    const chromeProfilePath = getSpaceChromeUserDataDir(spaceName);
     await cp(chromeProfilePath, join(dumpTmpPath, 'chrome-profile'), { recursive: true });
     */
     await spawnAsync(

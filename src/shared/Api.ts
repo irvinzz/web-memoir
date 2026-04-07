@@ -59,6 +59,11 @@ export interface Api {
   getLocale: () => Promise<string>;
 }
 
+export interface MainEventsMap {
+  'proxy.started': { spaceName: string; data: ProxyInstanceDescription };
+  'proxy.stopped': { spaceName: string };
+}
+
 export type SpaceSettings = {
   autostart?: boolean;
   useUpstreamProxy?: boolean;

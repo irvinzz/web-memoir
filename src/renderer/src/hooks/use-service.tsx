@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 
 import { IPCResponse, ProxyInstanceDescription, START_SERVICE_CODES } from '@shared';
+import { handleApiEvent } from '@renderer/main-events';
 
 export function useService(spaceName?: string): {
   enabled: boolean;
@@ -28,24 +29,16 @@ export function useService(spaceName?: string): {
   }, [catchedSpaceName, loadSettingsPromise, spaceName]);
 
   useEffect(() => {
-    const unbindProxyStoppedListener = window.electron.ipcRenderer.on(
-      'proxy.stopped',
-      (_event, _data) => {
-        const data = _data as { spaceName: string };
-        if (data.spaceName === spaceName) {
-          setEnabled(false);
-        }
+    const unbindProxyStoppedListener = handleApiEvent('proxy.stopped', (payload) => {
+      if (payload.spaceName === spaceName) {
+        setEnabled(false);
       }
-    );
-    const unbindProxyStartedListener = window.electron.ipcRenderer.on(
-      'proxy.started',
-      (_event, _data) => {
-        const data = _data as { spaceName: string; data: ProxyInstanceDescription };
-        if (data.spaceName === spaceName) {
-          setEnabled(true);
-        }
+    });
+    const unbindProxyStartedListener = handleApiEvent('proxy.started', (payload) => {
+      if (payload.spaceName === spaceName) {
+        setEnabled(true);
       }
-    );
+    });
 
     return () => {
       unbindProxyStoppedListener();

@@ -79,7 +79,7 @@ export default function SettingsDialog(props: {
         </DialogActions>
       </Dialog>
       <Dialog open={open}>
-        <DialogTitle>{t('options')}</DialogTitle>
+        <DialogTitle>{t('settings')}</DialogTitle>
         <DialogContent>
           <List>
             <ListItem alignItems="center">
