@@ -5,6 +5,7 @@
 	"add": "Add",
 	"agree": "Agree",
 	"allowLarge": "Allow large",
+	"areYouSure": "Are you sure?",
 	"availableSpaces": "Available Spaces",
 	"browseOnline": "Browse Online",
 	"browseOffline": "Browse space offline",
@@ -30,6 +31,7 @@
 	"letsInstallCertificate": "Let's install application ssl certificate to your browser.",
 	"main": "Main",
 	"manualLaunchDialogTitle": "External Browser Setup Steps",
+	"no": "No",
 	"noSpacesFound": "No spaces found",
 	"offlineModeDisabled": "Offline Mode disabled",
 	"offlineModeEnabled": "Offline Mode enabled",
@@ -54,5 +56,6 @@
 	"webMemoir": "Web Memoir",
 	"websiteDiscontinued": "Website discontinued",
 	"websiteDown": "Website down",
-	"websiteStateInPast": "Website state in the past"
+	"websiteStateInPast": "Website state in the past",
+	"yes": "Yes"
 }

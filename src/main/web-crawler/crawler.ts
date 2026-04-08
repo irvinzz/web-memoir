@@ -35,6 +35,7 @@ export async function crawlWebsite(opts: CrawlOptions): Promise<void> {
     proxyConfiguration: new ProxyConfiguration({
       proxyUrls: [opts.proxyUrl],
     }),
+    useSessionPool: false,
     maxRequestsPerCrawl: Number.MAX_SAFE_INTEGER,
     async requestHandler(context) {
       const { request, enqueueLinks } = context;

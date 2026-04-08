@@ -18,8 +18,9 @@ import {
 import { SpaceSettings } from '@shared';
 
 import { socks5Re } from '@renderer/components/const';
-import { useHandleAsyncAction } from '@renderer/hooks/handle-async-action';
+import { useHandleAsyncAction } from '@renderer/lib/async-handler';
 import { useTranslation } from '@renderer/localization/hook';
+import { useGlobalDialogs } from '@renderer/lib/global-dialog';
 
 export default function SettingsDialog(props: {
   open: boolean;
@@ -32,7 +33,9 @@ export default function SettingsDialog(props: {
 
   const { t } = useTranslation();
 
-  const { handleAsyncAction, prompt } = useHandleAsyncAction();
+  const { handleAsyncAction } = useHandleAsyncAction();
+
+  const { prompt } = useGlobalDialogs();
 
   const [proxyDialogVisible, setProxyDialogVisible] = useState(false);
   const [upstreamProxyValue, setUpstreamProxyValue] = useState('');

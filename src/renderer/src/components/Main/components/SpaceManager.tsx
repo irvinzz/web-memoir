@@ -21,11 +21,12 @@ import {
 } from '@mui/icons-material';
 import { isValidSpaceName, Space, SpaceSettings } from '@shared';
 import { useTranslation } from '@renderer/localization/hook';
-import { useHandleAsyncAction } from '@renderer/hooks/handle-async-action';
+import { useHandleAsyncAction } from '@renderer/lib/async-handler';
 
 import SettingsIcon from '@mui/icons-material/Settings';
 
 import SettingsDialog from './Settings';
+import { useGlobalDialogs } from '@renderer/lib/global-dialog';
 
 interface SpaceManagerProps {
   activeSpaceName: string | undefined;
@@ -52,7 +53,8 @@ function SpaceManager({
   const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
 
-  const { handleAsyncAction, confirm } = useHandleAsyncAction();
+  const { handleAsyncAction } = useHandleAsyncAction();
+  const { confirm } = useGlobalDialogs();
 
   const handleOpenDialog = (): void => {
     setDialogOpen(true);

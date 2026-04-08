@@ -8,6 +8,8 @@ import {
   DialogContent,
   DialogContentText,
   DialogTitle,
+  Switch,
+  TextField,
 } from '@mui/material';
 
 import TravelExploreIcon from '@mui/icons-material/TravelExplore';
@@ -16,24 +18,22 @@ import SmartToyOutlined from '@mui/icons-material/SmartToyOutlined';
 import { Space } from '@shared';
 
 import { useService } from '@renderer/hooks/use-service';
-import { useHandleAsyncAction } from '@renderer/hooks/handle-async-action';
+import { useHandleAsyncAction } from '@renderer/lib/async-handler';
+import { useGlobalDialogs } from '@renderer/lib/global-dialog';
 import { useTranslation } from '@renderer/localization/hook';
 import { useSpaces } from '@renderer/hooks/use-spaces';
 
 import SpaceManager from './components/SpaceManager';
-import SettingsDialog from './components/Settings';
 import { ManualLaunchDialog } from './components/ManualLaunch';
-import { CrawlDialog } from './components/Crawl';
 
 function Main(): React.JSX.Element {
   const { t } = useTranslation();
   const { handleAsyncAction } = useHandleAsyncAction();
+  const { prompt } = useGlobalDialogs();
   const [
     installCertificateConfirmationDialogVisible,
     setInstallCertificateConfirmationDialogVisible,
   ] = useState<boolean>(false);
-
-  const [crawlDialogVisible, setCrawlDialogVisible] = useState(false);
 
   const [manualLaunchDialogVisible, setManualLaunchDialogVisible] = useState<{
     visible: boolean;
@@ -139,6 +139,83 @@ function Main(): React.JSX.Element {
     });
   }
 
+  const [crawlButtonIsLoading, setCrawlButtonIsLoading] = useState(false);
+
+  function onCrawlButtonClicked(): void {
+    handleAsyncAction(async () => {
+      if (!activeSpaceName) return;
+      const answer = await prompt<{
+        startUrl: string;
+        runInForeground: boolean;
+        startUrlError?: string;
+      }>(
+        {
+          title: t('crawler'),
+          validate: (input) => {
+            const parsedUrl = URL.parse(input.startUrl);
+            if (!parsedUrl || !['http:', 'https:'].includes(parsedUrl.protocol)) {
+              return {
+                startUrl: t('invalidUrl'),
+              };
+            }
+            return true;
+          },
+          content({ value, onChange, errors }) {
+            return (
+              <>
+                <DialogContentText>{t('enterUrl')}</DialogContentText>
+                <TextField
+                  error={Boolean(errors.startUrl)}
+                  helperText={errors.startUrl}
+                  placeholder="https://example.org"
+                  value={value?.startUrl}
+                  onChange={(e) => {
+                    onChange({
+                      value: {
+                        ...value,
+                        startUrl: e.target.value,
+                        startUrlError: undefined,
+                      },
+                    });
+                  }}
+                />
+                <DialogContentText>{t('runInForeground')}</DialogContentText>
+                <Switch
+                  value={value?.runInForeground}
+                  onChange={(e) =>
+                    onChange({ value: { ...value, runInForeground: e.target.checked } })
+                  }
+                />
+              </>
+            );
+          },
+        },
+        {
+          startUrl: '',
+          runInForeground: false,
+        }
+      );
+
+      if ('cancelled' in answer) {
+        return;
+      }
+
+      try {
+        setCrawlButtonIsLoading(true);
+
+        if (!resolvedServiceEnabled) {
+          await startService();
+        }
+        const {
+          value: { runInForeground, startUrl },
+        } = answer;
+        await window.api.runCrawler(activeSpaceName, startUrl, { runInForeground });
+      } finally {
+        setCrawlButtonIsLoading(false);
+      }
+    }, false);
+  }
+
   return (
     <>
       <Box>
@@ -183,24 +260,11 @@ function Main(): React.JSX.Element {
               variant="contained"
               color="secondary"
               title={t('crawlHint')}
-              onClick={() => {
-                setCrawlDialogVisible(true);
-              }}
+              loading={crawlButtonIsLoading}
+              onClick={onCrawlButtonClicked}
             >
               <SmartToyOutlined />
             </Button>
-            {activeSpaceName && (
-              <CrawlDialog
-                open={crawlDialogVisible}
-                onClose={() => setCrawlDialogVisible(false)}
-                onOk={async (startUrl, runInForeground) => {
-                  if (!resolvedServiceEnabled) {
-                    await startService();
-                  }
-                  await window.api.runCrawler(activeSpaceName, startUrl, { runInForeground });
-                }}
-              />
-            )}
           </ButtonGroup>
           {/* Install certificate */}
           <Dialog open={installCertificateConfirmationDialogVisible}>

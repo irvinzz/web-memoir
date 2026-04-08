@@ -6,9 +6,10 @@ import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { AppBar, Tabs, Tab, Box, CssBaseline } from '@mui/material';
 
 import Main from './components/Main/Main';
-import { LoadingProvider, UIHelpersElement } from './hooks/handle-async-action';
 import About from './components/About';
 import { useTranslation } from './localization/hook';
+import { GlobalDialogsProvider } from './lib/global-dialog';
+import { LoadingProvider } from './lib/async-handler';
 
 function TabPanel(props: {
   children?: React.ReactNode;
@@ -38,11 +39,10 @@ function App(): React.JSX.Element {
   });
 
   return (
-    <>
-      <ThemeProvider theme={theme}>
-        <LoadingProvider>
+    <ThemeProvider theme={theme}>
+      <LoadingProvider>
+        <GlobalDialogsProvider>
           <CssBaseline />
-          <UIHelpersElement />
           <AppBar position="static">
             <Tabs value={tabIndex} onChange={handleTabChange}>
               <Tab label={t('main')} icon={<CloudOffIcon />} iconPosition="start" />
@@ -55,9 +55,9 @@ function App(): React.JSX.Element {
           <TabPanel value={tabIndex} index={1}>
             <About />
           </TabPanel>
-        </LoadingProvider>
-      </ThemeProvider>
-    </>
+        </GlobalDialogsProvider>
+      </LoadingProvider>
+    </ThemeProvider>
   );
 }
 

@@ -16,7 +16,7 @@ import {
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 
 import { useTranslation } from '@renderer/localization/hook';
-import { useHandleAsyncAction } from '@renderer/hooks/handle-async-action';
+import { useHandleAsyncAction } from '@renderer/lib/async-handler';
 
 export function ManualLaunchDialog(props: {
   onClose: () => void;

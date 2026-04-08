@@ -11,7 +11,7 @@ import {
   Switch,
 } from '@mui/material';
 
-import { useHandleAsyncAction } from '@renderer/hooks/handle-async-action';
+import { useHandleAsyncAction } from '@renderer/lib/async-handler';
 import { useTranslation } from '@renderer/localization/hook';
 
 export function CrawlDialog(props: {
