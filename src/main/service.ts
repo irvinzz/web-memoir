@@ -36,9 +36,9 @@ function onDBStopped(): void {
 
 export async function startProxyInstance(options: {
   spaceName: string;
-  portOverride?: number;
+  previousInstancePort?: number;
 }): Promise<IPCResponse<START_SERVICE_CODES, ProxyInstanceDescription>> {
-  const { spaceName, portOverride } = options;
+  const { spaceName, previousInstancePort } = options;
   if (proxyInstances.has(spaceName)) {
     throw new Error(`Proxy [${spaceName}] already started`);
   }
@@ -59,7 +59,7 @@ export async function startProxyInstance(options: {
   const proxyInstance = await startProxy({
     dbUrl: `mongodb://localhost:${dbInstance.port}`,
     spaceName,
-    portOverride,
+    previousInstancePort,
     onClose(code) {
       proxyInstances.delete(options.spaceName);
     },
@@ -130,7 +130,7 @@ export async function applySpaceSettings(
   const proxyInstance = getProxyInstance(spaceName);
   if (proxyInstance) {
     await stopProxyInstance(spaceName);
-    await startProxyInstance({ spaceName, portOverride: proxyInstance.port });
+    await startProxyInstance({ spaceName, previousInstancePort: proxyInstance.port });
   }
 }
 

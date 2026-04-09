@@ -17,7 +17,7 @@ const logger = createLogger('proxy');
 
 export interface ProxyStartOptions {
   spaceName: string;
-  portOverride?: number;
+  previousInstancePort?: number;
   dbUrl: string;
   onClose: (code: number | null) => void;
 }
@@ -27,7 +27,7 @@ export async function startProxy(options: ProxyStartOptions): Promise<{
   port: number;
   process: ChildProcess;
 }> {
-  const { dbUrl, spaceName, portOverride, onClose } = options;
+  const { dbUrl, spaceName, previousInstancePort, onClose } = options;
   await createRootCA();
 
   const proxyBundleFilePath = join(resourcesDir, 'proxy.bundle.js');
@@ -39,9 +39,11 @@ export async function startProxy(options: ProxyStartOptions): Promise<{
     logger.warn('Failed to load proxy options, using defaults', err);
   }
 
-  const ipAddress = spaceSettings.allowNetwork ? '0.0.0.0' : '127.0.0.1';
+  const ipAddress = spaceSettings.allowIncomingConnections ? '0.0.0.0' : '127.0.0.1';
   const proxyPort =
-    portOverride || spaceSettings.pinCustomPort || (await getPort({ port: 3128, host: ipAddress }));
+    spaceSettings.fixedPort ||
+    previousInstancePort ||
+    (await getPort({ port: 3128, host: ipAddress }));
 
   const boolToEnv = (input?: boolean): string => (input ? '1' : '');
 
