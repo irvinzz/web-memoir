@@ -1,9 +1,11 @@
 {
 	"about": "О программе",
+	"autostart": "Автозапуск",
 	"aboutApplication": "Приложение для записи и воспроизведения веб запросов.",
 	"add": "Добавить",
 	"agree": "Согласиться",
 	"allowLarge": "Разрешить большие файлы",
+	"areYouSure": "Вы уверены?",
 	"availableSpaces": "Доступные пространства",
 	"browseOnline": "Обзор онлайн",
 	"browseOffline": "Обзор оффлайн",
@@ -29,6 +31,7 @@
 	"letsInstallCertificate": "Давайте установим SSL-сертификат приложения в ваш браузер.",
 	"main": "Главная",
 	"manualLaunchDialogTitle": "Настройка внешнего браузера",
+	"no": "Нет",
 	"noSpacesFound": "Пространства не найдены",
 	"offlineModeDisabled": "Режим оффлайн выключен",
 	"offlineModeEnabled": "Режим оффлайн включен",
@@ -42,6 +45,8 @@
 	"serviceStarted": "Служба запущена",
 	"serviceStopped": "Служба остановлена",
 	"settings": "Настройки",
+	"fixedPort": "Фиксированный порт",
+	"allowIncomingConnections": "Разрешить входящие соединения",
 	"space": "пространство",
 	"spaceNameCannotBeEmpty": "Имя пространства не может быть пустым",
 	"spaceWithThisNameAlreadyExists": "Пространство с таким именем уже существует",
@@ -53,5 +58,6 @@
 	"webMemoir": "Web Memoir",
 	"websiteDiscontinued": "Сайт закрыт",
 	"websiteDown": "Временная недоступность сайта",
-	"websiteStateInPast": "Сайт в прошлых версиях"
+	"websiteStateInPast": "Сайт в прошлых версиях",
+	"yes": "Да"
 }

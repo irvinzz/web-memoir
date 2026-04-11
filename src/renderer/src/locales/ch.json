@@ -1,9 +1,11 @@
 {
   "about": "关于",
+  "autostart": "自动启动",
   "aboutApplication": "该应用程序允许您记录并随后重现您的网络交互。",
   "add": "添加",
   "agree": "同意",
   "allowLarge": "允许大文件",
+  "areYouSure": "您确认吗？",
   "availableSpaces": "可用空间",
   "browse": "浏览",
   "browseCertificate": "浏览证书",
@@ -28,6 +30,7 @@
   "letsInstallCertificate": "让我们将应用程序SSL证书安装到您的浏览器中。",
   "main": "主页面",
   "manualLaunchDialogTitle": "外部浏览器设置步骤",
+  "no": "否",
   "noSpacesFound": "未找到空间",
   "offlineModeDisabled": "离线模式已禁用",
   "offlineModeEnabled": "离线模式已启用",
@@ -41,6 +44,8 @@
   "serviceStarted": "服务已启动",
   "serviceStopped": "服务已停止",
   "settings": "设置",
+  "fixedPort": "固定端口",
+  "allowIncomingConnections": "允许入站连接",
   "space": "空间",
   "spaceNameCannotBeEmpty": "空间名称不能为空",
   "spaceWithThisNameAlreadyExists": "具有此名称的空间已存在",
@@ -53,5 +58,5 @@
   "websiteDiscontinued": "网站已停用",
   "websiteDown": "网站不可用",
   "websiteStateInPast": "网站过去的状态",
-  "debug": "调试"
+  "yes": "是"
 }
