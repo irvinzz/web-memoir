@@ -4,7 +4,7 @@ export interface PromptOptions<T> {
   content: (props: {
     value: T;
     onChange: (e: { value: T }) => void;
-    errors: PromptErrors<T>;
+    errors?: PromptErrors<T>;
   }) => React.JSX.Element;
 }
 
@@ -22,6 +22,6 @@ export interface GlobalDialogsContextType<T> {
   setConfirmAnswerHandler: (handler: (answer: 'YES' | 'NO') => void) => void;
   promptDialogProps: PromptDialogProps<T> | null;
   setPromptDialogProps: (props: PromptDialogProps<T> | null) => void;
-  errors: PromptErrors<T>;
-  setErrors: (newErrors: PromptErrors<T>) => void;
+  errors: PromptErrors<T> | undefined;
+  setErrors: (newErrors: PromptErrors<T> | undefined) => void;
 }

@@ -30,11 +30,14 @@ export function useGlobalDialogs(): {
           ...props,
           initialValue,
           onOk(value: T) {
+            setErrors(undefined);
             if (props.validate) {
               const validationResult = props.validate(value);
               if (validationResult !== true) {
                 if (validationResult !== false) {
                   setErrors(validationResult);
+                } else {
+                  setErrors({});
                 }
                 return;
               }

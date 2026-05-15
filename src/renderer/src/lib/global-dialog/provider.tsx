@@ -26,11 +26,11 @@ export function GlobalDialogsProvider(props: { children?: React.ReactNode }): Re
 
   const [promptDialogProps, setPromptDialogProps] = useState<PromptDialogProps<any> | null>(null);
   const [promptValue, setPromptValue] = useState<any>(promptDialogProps?.initialValue);
-  const [errors, setErrors] = useState<PromptErrors<any>>({});
+  const [errors, setErrors] = useState<PromptErrors<any> | undefined>(undefined);
 
   useEffect(() => {
     setPromptValue(promptDialogProps?.initialValue);
-    setErrors({});
+    setErrors(undefined);
   }, [promptDialogProps?.initialValue]);
 
   return (

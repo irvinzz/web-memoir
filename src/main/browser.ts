@@ -31,8 +31,9 @@ const chromeInstances: Map<string, ChromiumInstance> = new Map();
 export async function startChromium(options: {
   proxyPort: number;
   spaceName: string;
+  arguments?: string;
 }): Promise<ChildProcess> {
-  const { spaceName, proxyPort } = options;
+  const { spaceName, proxyPort, arguments: args } = options;
   const chromeInstance = chromeInstances.get(spaceName);
   if (chromeInstance) {
     throw new Error(`Browser for [${spaceName}] is running with PID:${chromeInstance.process.pid}`);
@@ -40,6 +41,7 @@ export async function startChromium(options: {
   const { chromium } = importPlaywright();
 
   const chromiumProcess = spawn(chromium.executablePath(), [
+    ...(args ? [args] : []),
     `--proxy-server=https=localhost:${proxyPort}`,
     `--user-data-dir=${getSpaceChromeUserDataDir(spaceName)}`,
     '--profile-directory=default',

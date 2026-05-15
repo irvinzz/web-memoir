@@ -37,50 +37,8 @@ export default function SettingsDialog(props: {
 
   const { prompt } = useGlobalDialogs();
 
-  const [proxyDialogVisible, setProxyDialogVisible] = useState(false);
-  const [upstreamProxyValue, setUpstreamProxyValue] = useState('');
-  const [upstreamProxyValueInvalid, setUpstreamProxyValueInvalid] = useState(false);
-
-  function onProxyDialogOK(): void {
-    if (socks5Re.test(upstreamProxyValue)) {
-      handleAsyncAction(async () => {
-        await toggleSettings({
-          upstreamProxyAddress: upstreamProxyValue,
-          useUpstreamProxy: true,
-        });
-        setProxyDialogVisible(false);
-      });
-    } else {
-      setUpstreamProxyValueInvalid(true);
-    }
-  }
-
   return (
     <>
-      <Dialog open={proxyDialogVisible}>
-        <DialogTitle>{t('upstreamProxy')}</DialogTitle>
-        <DialogContent>
-          <DialogContentText>{t('provideProxyUrl')}</DialogContentText>
-          <TextField
-            error={upstreamProxyValueInvalid}
-            placeholder="socks5://127.0.0.1:8001"
-            value={upstreamProxyValue}
-            onChange={(e) => {
-              setUpstreamProxyValue(e.target.value);
-            }}
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={onProxyDialogOK}>{t('ok')}</Button>
-          <Button
-            onClick={() => {
-              setProxyDialogVisible(false);
-            }}
-          >
-            {t('cancel')}
-          </Button>
-        </DialogActions>
-      </Dialog>
       <Dialog open={open}>
         <DialogTitle>{t('settings')}</DialogTitle>
         <DialogContent>
@@ -117,15 +75,46 @@ export default function SettingsDialog(props: {
                   <Switch
                     checked={!!settings?.useUpstreamProxy}
                     onChange={(e) => {
-                      if (e.target.checked) {
-                        setProxyDialogVisible(true);
-                      } else {
-                        handleAsyncAction(async () => {
-                          await toggleSettings({
-                            useUpstreamProxy: false,
+                      (async () => {
+                        if (e.target.checked) {
+                          const answer = await prompt<string>(
+                            {
+                              title: t('upstreamProxy'),
+                              validate(input) {
+                                return socks5Re.test(input);
+                              },
+                              content: ({ value, onChange, errors }) => (
+                                <>
+                                  <TextField
+                                    error={Boolean(errors)}
+                                    placeholder="socks5://127.0.0.1:8001"
+                                    value={value}
+                                    onChange={(e) => {
+                                      onChange({ value: e.target.value });
+                                    }}
+                                  />
+                                </>
+                              ),
+                            },
+                            settings?.upstreamProxyAddress
+                          );
+                          if ('cancelled' in answer) {
+                            return;
+                          }
+                          handleAsyncAction(async () => {
+                            await toggleSettings({
+                              useUpstreamProxy: true,
+                              upstreamProxyAddress: answer.value,
+                            });
                           });
-                        });
-                      }
+                        } else {
+                          handleAsyncAction(async () => {
+                            await toggleSettings({
+                              useUpstreamProxy: false,
+                            });
+                          });
+                        }
+                      })();
                     }}
                   />
                 }
@@ -174,6 +163,52 @@ export default function SettingsDialog(props: {
                   />
                 }
                 label={<Typography>{t('useExternalWebBrowser')}</Typography>}
+              />
+            </ListItem>
+            <ListItem>
+              <FormControlLabel
+                control={
+                  <Switch
+                    disabled={!!settings?.customBrowser}
+                    checked={!!settings?.useChromeArguments}
+                    onChange={(e) => {
+                      (async () => {
+                        if (e.target.checked) {
+                          const answer = await prompt<string>(
+                            {
+                              title: t('chromeArguments'),
+                              content: ({ value, onChange }) => (
+                                <>
+                                  <TextField
+                                    value={value}
+                                    onChange={(e) => {
+                                      onChange({ value: e.target.value });
+                                    }}
+                                  />
+                                </>
+                              ),
+                            },
+                            settings?.chromeArguments
+                          );
+                          if ('cancelled' in answer) {
+                            return;
+                          }
+                          handleAsyncAction(async () => {
+                            await toggleSettings({
+                              useChromeArguments: true,
+                              chromeArguments: answer.value,
+                            });
+                          });
+                        } else {
+                          handleAsyncAction(async () => {
+                            await toggleSettings({ useChromeArguments: false });
+                          });
+                        }
+                      })();
+                    }}
+                  />
+                }
+                label={<Typography>{t('chromeArguments')}</Typography>}
               />
             </ListItem>
             <ListItem alignItems="center">

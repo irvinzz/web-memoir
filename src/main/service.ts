@@ -144,6 +144,9 @@ app.whenReady().then(async function autostart() {
           await startChromium({
             spaceName,
             proxyPort: proxyInstance.data!.port,
+            arguments: space.settings.useChromeArguments
+              ? space.settings.chromeArguments
+              : undefined,
           });
         }
       }

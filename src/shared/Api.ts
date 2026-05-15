@@ -74,6 +74,8 @@ export type SpaceSettings = {
   offline?: boolean;
   private?: boolean;
   customBrowser?: boolean;
+  useChromeArguments?: boolean;
+  chromeArguments?: string;
   fixedPort?: number;
   allowIncomingConnections?: boolean;
   startPage?: string;
