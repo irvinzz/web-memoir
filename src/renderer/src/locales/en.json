@@ -12,6 +12,7 @@
 	"browseCertificate": "Browse Certificate",
 	"cancel": "Cancel",
 	"certificateMissing": "Certificate missing",
+	"chromeArguments": "Chrome arguments",
 	"close": "Close",
 	"commonUseCases": "Common use cases include:",
 	"crawlHint": "Use Robot to walk through website",

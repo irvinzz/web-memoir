@@ -111,6 +111,10 @@ app.whenReady().then(() => {
     },
   ]);
   tray.setContextMenu(contextMenu);
+
+  process.on('SIGTERM', async () => {
+    await stopProxyInstances({ allSpaces: true });
+  });
 });
 
 // Quit when all windows are closed, except on macOS. There, it's common

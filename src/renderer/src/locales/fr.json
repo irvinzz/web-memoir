@@ -9,6 +9,7 @@
   "browseCertificate": "Parcourir le certificat",
   "cancel": "Annuler",
   "certificateMissing": "Certificat manquant",
+  "chromeArguments": "Arguments Chrome",
   "close": "Fermer",
   "commonUseCases": "Cas d'utilisation courants :",
   "crawlHint": "Utilisez le robot pour parcourir le site web",

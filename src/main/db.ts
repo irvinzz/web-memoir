@@ -91,28 +91,28 @@ async function startDBInstanceInternal(): Promise<DBInstanceDescription> {
     '--quiet',
   ];
 
-  const process = spawn(binPath, args, { stdio: 'ignore' });
+  const dbProcess = spawn(binPath, args, { stdio: 'ignore' });
 
-  process.stdout?.on('data', (msg) => logger.debug(msg.toString()));
-  process.stderr?.on('data', (msg) => logger.error(msg.toString()));
+  dbProcess.stdout?.on('data', (msg) => logger.debug(msg.toString()));
+  dbProcess.stderr?.on('data', (msg) => logger.error(msg.toString()));
 
-  await waitProcessPort(process, listenPort);
+  await waitProcessPort(dbProcess, listenPort);
 
   logger.info('DB Instance started');
 
-  process.on('close', (code) => {
+  dbProcess.on('close', (code) => {
     logger.info(`MongoDB exited with code ${code}`);
     dbChildProcess = null;
     listenPort = null;
   });
 
-  process.on('error', (err) => {
+  dbProcess.on('error', (err) => {
     logger.error('Failed to start MongoDB process', err);
     dbChildProcess = null;
     listenPort = null;
   });
 
-  dbChildProcess = process;
+  dbChildProcess = dbProcess;
 
   return { port: listenPort, process: dbChildProcess };
 }

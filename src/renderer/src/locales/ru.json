@@ -12,6 +12,7 @@
 	"browseCertificate": "Просмотреть сертификат",
 	"cancel": "Отмена",
 	"certificateMissing": "Сертификат отсутствует",
+	"chromeArguments": "Аргументы для Chrome",
 	"close": "Закрыть",
 	"commonUseCases": "Типовые сценарии:",
 	"crawlHint": "Используйте Робота для обхода сайта",

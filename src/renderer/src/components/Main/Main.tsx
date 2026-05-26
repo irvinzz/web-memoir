@@ -165,8 +165,8 @@ function Main(): React.JSX.Element {
               <>
                 <DialogContentText>{t('enterUrl')}</DialogContentText>
                 <TextField
-                  error={Boolean(errors.startUrl)}
-                  helperText={errors.startUrl}
+                  error={Boolean(errors?.startUrl)}
+                  helperText={errors?.startUrl}
                   placeholder="https://example.org"
                   value={value?.startUrl}
                   onChange={(e) => {

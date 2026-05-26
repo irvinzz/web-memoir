@@ -11,6 +11,7 @@
   "browseCertificate": "浏览证书",
   "cancel": "取消",
   "certificateMissing": "证书缺失",
+  "chromeArguments": "Chrome 参数",
   "close": "关闭",
   "commonUseCases": "常见使用案例：",
   "crawlHint": "使用机器人遍历网站",
