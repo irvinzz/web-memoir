@@ -1,6 +1,8 @@
 import { ChildProcess, exec, ExecException, spawn } from 'node:child_process';
 import waitPort from 'wait-port';
 
+import { asyncTimeout } from '@shared';
+
 import { createLogger } from './logger';
 
 export async function stopProcess(childProcess: ChildProcess): Promise<void> {
@@ -12,22 +14,45 @@ export async function stopProcess(childProcess: ChildProcess): Promise<void> {
   });
 }
 
-export async function promiseTimeout<T>(cb: Promise<T>, timeout: number): Promise<T> {
+export async function stopProcessForced(
+  childProcess: ChildProcess,
+  timeout: number = 10000
+): Promise<void> {
+  if (!childProcess) {
+    return;
+  }
+
+  stopProcess(childProcess);
+
+  await new Promise<void>((resolve) => {
+    const timer = setTimeout(resolve, timeout);
+    const onExit = (): void => {
+      clearTimeout(timer);
+      resolve();
+    };
+    if (childProcess.exitCode !== null) {
+      clearTimeout(timer);
+      resolve();
+    } else {
+      childProcess.once('exit', onExit);
+    }
+  });
+
+  if (childProcess.exitCode === null) {
+    childProcess.kill('SIGKILL');
+  }
+}
+
+export async function promiseTimeout<T>(cb: () => Promise<T>, timeout: number): Promise<T> {
   return new Promise((resolve, reject) => {
     const timer = setTimeout(() => {
       reject(new Error(`${timeout} ms`));
     }, timeout);
 
-    cb.then((result) => {
+    cb().then((result) => {
       clearTimeout(timer);
       resolve(result);
     });
-  });
-}
-
-export async function asyncTimeout(timeout: number): Promise<void> {
-  return new Promise((resolve) => {
-    setTimeout(resolve, timeout);
   });
 }
 
@@ -61,7 +86,7 @@ export async function waitProcessPort(process: ChildProcess, port: number): Prom
       process.stdout?.removeListener('data', onOutputData);
       process.stderr?.removeListener('data', onOutputData);
       return process;
-    })().then(process => {
+    })().then((process) => {
       if (!process.exitCode) {
         resolve(process);
       }

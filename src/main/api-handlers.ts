@@ -19,7 +19,7 @@ import {
   removeSpace,
   setActiveSpace,
 } from './spaces';
-import { mainWindow } from './index';
+import { mainWindow } from './window';
 
 type ToHandler<T extends (...args: any[]) => Promise<any>> = (
   _event: IpcMainInvokeEvent,

@@ -1,44 +1,12 @@
 import { join } from 'node:path';
-import { app, shell, BrowserWindow, Tray, ipcMain, Menu } from 'electron';
-import { electronApp, optimizer, is } from '@electron-toolkit/utils';
+import { app, BrowserWindow, Tray, Menu } from 'electron';
+import { electronApp, optimizer } from '@electron-toolkit/utils';
+
+import { createWindow, mainWindow } from './window';
 
 import { stopProxyInstances } from './service';
-
-import icon from '../../resources/icon9.png?asset';
-export let mainWindow: BrowserWindow | null = null;
-function createWindow(): void {
-  // Create the browser window.
-  mainWindow = new BrowserWindow({
-    width: 480,
-    height: 640,
-    show: false,
-    autoHideMenuBar: true,
-    ...(process.platform === 'linux' ? { icon } : {}),
-    webPreferences: {
-      preload: join(__dirname, '../preload/index.js'),
-      sandbox: false,
-    },
-    maximizable: false,
-    closable: true,
-  });
-
-  mainWindow.on('ready-to-show', () => {
-    mainWindow?.show();
-  });
-
-  mainWindow.webContents.setWindowOpenHandler((details) => {
-    shell.openExternal(details.url);
-    return { action: 'deny' };
-  });
-
-  // HMR for renderer base on electron-vite cli.
-  // Load the remote URL for development or the local html file for production.
-  if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
-    mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL']);
-  } else {
-    mainWindow.loadFile(join(__dirname, '../renderer/index.html'));
-  }
-}
+import './api-handlers';
+import { resourcesDir } from './const';
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
@@ -53,9 +21,6 @@ app.whenReady().then(() => {
   app.on('browser-window-created', (_, window) => {
     optimizer.watchWindowShortcuts(window);
   });
-
-  // IPC test
-  ipcMain.on('ping', () => console.log('pong'));
 
   createWindow();
 
@@ -117,17 +82,8 @@ app.whenReady().then(() => {
   });
 });
 
-// Quit when all windows are closed, except on macOS. There, it's common
-// for applications and their menu bar to stay active until the user quits
-// explicitly with Cmd + Q.
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     app.quit();
   }
 });
-
-// In this file you can include the rest of your app's specific main process
-// code. You can also put them in separate files and require them here.
-
-import './api-handlers';
-import { resourcesDir } from './const';

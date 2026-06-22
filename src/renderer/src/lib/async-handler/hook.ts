@@ -1,18 +1,22 @@
 import { useCallback, useContext } from 'react';
+import { asyncTimeout } from '@shared';
 
 import { LoadingContext } from './context';
 
 export function useHandleAsyncAction(): {
-  handleAsyncAction(cb: () => Promise<void>, masked?: boolean): void;
+  handleAsyncAction(cb: () => Promise<void>, masked?: boolean, timeout?: number): void;
   loading: boolean;
 } {
   const { loading, setLoading, setError } = useContext(LoadingContext);
 
   const handleAsyncAction = useCallback(
-    async (cb: () => Promise<void>, masked = true) => {
+    async (cb: () => Promise<void>, masked = true, timeout = 30000) => {
       if (masked) setLoading(true);
       try {
-        await cb();
+        await Promise.race([
+          cb(),
+          asyncTimeout(timeout).then(() => Promise.reject({ message: `Timeout [${timeout}]` })),
+        ]);
       } catch (e) {
         if (
           typeof e === 'object' &&

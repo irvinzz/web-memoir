@@ -1,6 +1,6 @@
 import { MainEventsMap } from '@shared';
 
-import { mainWindow } from './index';
+import { mainWindow } from './window';
 
 export function sendEventToRenderer<K extends keyof MainEventsMap>(
   name: K,

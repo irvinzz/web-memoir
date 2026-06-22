@@ -8,7 +8,7 @@ import { DBNamePrefix } from '@shared';
 import { getCertificateManager } from './cert';
 import { caCrtPath } from './cert-ca';
 import { importPlaywright } from './playwright';
-import { stopProcess } from './process';
+import { stopProcessForced } from './process';
 
 export const certManager = getCertificateManager(caCrtPath);
 
@@ -63,9 +63,11 @@ export async function startChromium(options: {
 
 export async function stopBrowserInstance(profileName: string): Promise<void> {
   const instance = chromeInstances.get(profileName);
-  if (instance) {
-    await stopProcess(instance.process);
-  }
+  if (!instance) return;
+
+  chromeInstances.delete(profileName);
+  instance.process.removeAllListeners('close');
+  await stopProcessForced(instance.process, 10000);
 }
 
 export async function installCertificate(): Promise<void> {
