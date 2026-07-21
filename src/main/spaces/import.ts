@@ -58,16 +58,11 @@ export async function importSpace(mainWindow: BrowserWindow): Promise<void> {
         await cp(join(tmpDir, 'chrome-profile'), chromeProfilePath, { recursive: true });
       }
       */
-      if (filesList.includes(transformSpaceNameToDBName(spaceManifest.name))) {
+      const dbName = transformSpaceNameToDBName(spaceManifest.name);
+      if (filesList.includes(dbName)) {
         await spawnAsync(
           join(resourcesDir, 'mongodb-tools', 'bin', 'mongorestore'),
-          [
-            '--port',
-            String(dbInfo?.port),
-            '--db',
-            transformSpaceNameToDBName('import-test'),
-            join(tmpDir, transformSpaceNameToDBName(spaceManifest.name)),
-          ],
+          ['--port', String(dbInfo?.port), '--db', dbName, join(tmpDir, dbName)],
           'mongorestore'
         );
       }

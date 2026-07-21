@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
   Box,
   Button,
@@ -102,15 +102,20 @@ function Main(): React.JSX.Element {
     await setActiveSpace(spaceName);
   };
 
+  const activeSpace = useMemo(() => {
+    if (!activeSpaceName) return undefined;
+    return spaces[activeSpaceName];
+  }, [activeSpaceName, spaces]);
+
   function onBrowseButtonClicked(mode: 'online' | 'offline'): void {
     handleAsyncAction(async () => {
       if (!activeSpaceName) return;
       if (mode === 'offline') {
-        if (!spaces[activeSpaceName].settings?.offline) {
+        if (!activeSpace?.settings?.offline) {
           await toggleSettings(activeSpaceName, { offline: true });
         }
       } else if (mode === 'online') {
-        if (spaces[activeSpaceName].settings?.offline) {
+        if (activeSpace?.settings?.offline) {
           await toggleSettings(activeSpaceName, { offline: false });
         }
       }
@@ -218,7 +223,12 @@ function Main(): React.JSX.Element {
 
   return (
     <>
-      <Box>
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'center',
+        }}
+      >
         <SpaceManager
           activeSpaceName={activeSpaceName}
           onSpaceChange={handleSpaceChange}
@@ -247,6 +257,7 @@ function Main(): React.JSX.Element {
               onClick={() => {
                 onBrowseButtonClicked('online');
               }}
+              disabled={activeSpace?.settings?.offline}
             >
               {resolvedServiceEnabled ? t('stop') : t('browseOnline')}
             </Button>
@@ -262,8 +273,20 @@ function Main(): React.JSX.Element {
               title={t('crawlHint')}
               loading={crawlButtonIsLoading}
               onClick={onCrawlButtonClicked}
+              disabled={activeSpace?.settings?.offline}
             >
               <SmartToyOutlined />
+            </Button>
+            <Button
+              variant="contained"
+              color={resolvedServiceEnabled ? 'error' : 'warning'}
+              startIcon={<TravelExploreIcon />}
+              onClick={() => {
+                onBrowseButtonClicked('offline');
+              }}
+              disabled={!activeSpace?.settings?.offline}
+            >
+              {resolvedServiceEnabled ? t('stop') : t('browseOffline')}
             </Button>
           </ButtonGroup>
           {/* Install certificate */}
@@ -284,18 +307,6 @@ function Main(): React.JSX.Element {
               </Button>
             </DialogActions>
           </Dialog>
-        </Box>
-        <Box>
-          <Button
-            variant="contained"
-            color={resolvedServiceEnabled ? 'error' : 'warning'}
-            startIcon={<TravelExploreIcon />}
-            onClick={() => {
-              onBrowseButtonClicked('offline');
-            }}
-          >
-            {resolvedServiceEnabled ? t('stop') : t('browseOffline')}
-          </Button>
         </Box>
       </Box>
     </>
