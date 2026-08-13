@@ -91,7 +91,7 @@ handleApiEvent(
 );
 
 handleApiEvent('installCertificate', async () => {
-  await installCertificate();
+  return await installCertificate();
 });
 
 handleApiEvent('describeProxyInstance', async (_event, spaceName) => {

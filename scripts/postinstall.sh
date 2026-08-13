@@ -3,6 +3,6 @@
 set -euo pipefail
 
 node ./scripts/install-mongodb-tools.js
-bash ./scripts/install-playwright-chromium.sh
+node ./scripts/install-playwright-chromium.js
 node ./scripts/install-mongodb.js
 

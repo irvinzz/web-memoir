@@ -1,7 +1,8 @@
 const os = require('os');
 const fs = require('fs');
 const path = require('path');
-const { execSync } = require('child_process');
+const tar = require('tar');
+const AdmZip = require('adm-zip');
 
 const platform = os.platform();
 const arch = os.arch();
@@ -41,9 +42,14 @@ const archivePath = path.join(installDir, archiveName);
     fs.writeFileSync(archivePath, Buffer.from(buffer));
 
     if (ext === 'tgz') {
-      execSync(`tar -xzf "${archivePath}" -C "${installDir}" --strip-components=1`);
+      await tar.extract({
+        file: archivePath,
+        cwd: installDir,
+        strip: 1,
+      });
     } else {
-      execSync(`unzip -q "${archivePath}" -d "${installDir}"`);
+      const zip = new AdmZip(archivePath);
+      zip.extractAllTo(installDir);
       const folder = fs.readdirSync(installDir).find((f) => f.startsWith('mongodb-database-tools'));
       if (folder) {
         const src = path.join(installDir, folder);

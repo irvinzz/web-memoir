@@ -77,15 +77,23 @@ function Main(): React.JSX.Element {
     setInstallCertificateConfirmationDialogVisible(false);
   };
 
-  const handleInstallCertificateIgnore = (): void => {
+  const handleInstallCertificateIgnore = async (): Promise<void> => {
     setInstallCertificateConfirmationDialogVisible(false);
-    startBrowser(true);
+    await startBrowser(true);
   };
 
   const handleInstallCertificateAgree = async (): Promise<void> => {
-    await window.api.installCertificate();
-    await startBrowser(false);
-    setInstallCertificateConfirmationDialogVisible(false);
+    const installResult = await window.api.installCertificate();
+    switch (installResult.code) {
+      case 'OK': {
+        await startBrowser(false);
+        setInstallCertificateConfirmationDialogVisible(false);
+        break;
+      }
+      case 'UNHANDLED_ERROR': {
+        throw new Error(`Unhandled error '${installResult.code}': ${installResult.error}`);
+      }
+    }
   };
 
   const handleSpaceChange = (spaceName: string): void => {

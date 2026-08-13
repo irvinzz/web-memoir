@@ -3,7 +3,7 @@ import { join } from 'node:path';
 
 import { app } from 'electron';
 
-import { DBNamePrefix } from '@shared';
+import { DBNamePrefix, INSTALL_CERTIFICATE_CODES, IPCResponse } from '@shared';
 
 import { getCertificateManager } from './cert';
 import { caCrtPath } from './cert-ca';
@@ -70,8 +70,8 @@ export async function stopBrowserInstance(profileName: string): Promise<void> {
   await stopProcessForced(instance.process, 10000);
 }
 
-export async function installCertificate(): Promise<void> {
-  await certManager.installCertificate();
+export async function installCertificate(): Promise<IPCResponse<INSTALL_CERTIFICATE_CODES, void>> {
+  return await certManager.installCertificate();
 }
 
 export async function uninstallCertificate(): Promise<void> {

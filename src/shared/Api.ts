@@ -37,7 +37,7 @@ export interface Api {
     spaceName: string,
     ignoreSSLError: boolean
   ) => Promise<IPCResponse<START_BROWSER_CODES>>;
-  installCertificate: () => Promise<void>;
+  installCertificate: () => Promise<IPCResponse<INSTALL_CERTIFICATE_CODES, void>>;
   openCertiticateFolder: () => Promise<void>;
   runCrawler: (
     spaceName: string,
