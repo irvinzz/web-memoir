@@ -61,5 +61,8 @@
   "websiteDiscontinued": "网站已停用",
   "websiteDown": "网站不可用",
   "websiteStateInPast": "网站过去的状态",
-  "yes": "是"
+  "yes": "是",
+  "ignoreCacheBustingParams": "忽略缓存破坏参数",
+  "cacheBustingParamsToIgnore": "要忽略的缓存破坏参数",
+  "commaSeparated": "逗号分隔"
 }

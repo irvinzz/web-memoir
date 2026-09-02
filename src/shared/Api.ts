@@ -79,4 +79,6 @@ export type SpaceSettings = {
   fixedPort?: number;
   allowIncomingConnections?: boolean;
   startPage?: string;
+  ignoreCacheBustingParams?: boolean;
+  ignoreCacheBustingParamsValue?: string[];
 };

@@ -61,5 +61,8 @@
 	"websiteDiscontinued": "Website eingestellt",
 	"websiteDown": "Website nicht erreichbar",
 	"websiteStateInPast": "Zustand der Website in der Vergangenheit",
-	"yes": "Ja"
+	"yes": "Ja",
+	"ignoreCacheBustingParams": "Cache-umgehende Parameter ignorieren",
+	"cacheBustingParamsToIgnore": "Cache-umgehende Parameter zum Ignorieren",
+	"commaSeparated": "Komma-getrennt"
 }

@@ -274,6 +274,55 @@ export default function SettingsDialog(props: {
               <FormControlLabel
                 control={
                   <Switch
+                    checked={!!settings?.ignoreCacheBustingParams}
+                    onChange={(e) =>
+                      (async () => {
+                        if (e.target.checked) {
+                          const answer = await prompt<string>({
+                            title: t('cacheBustingParamsToIgnore'),
+                            content: ({ value, onChange }) => {
+                              return (
+                                <>
+                                  <TextField
+                                    value={value}
+                                    onChange={(e) => {
+                                      onChange({ value: e.target.value });
+                                    }}
+                                    placeholder={t('commaSeparated')}
+                                  />
+                                </>
+                              );
+                            },
+                          });
+                          if ('cancelled' in answer) {
+                            return;
+                          }
+                          handleAsyncAction(async () => {
+                            await toggleSettings({
+                              ignoreCacheBustingParams: true,
+                              ignoreCacheBustingParamsValue: answer.value
+                                .split(',')
+                                .map((item) => item.trim()),
+                            });
+                          });
+                        } else {
+                          handleAsyncAction(async () => {
+                            await toggleSettings({
+                              ignoreCacheBustingParams: false,
+                            });
+                          });
+                        }
+                      })()
+                    }
+                  />
+                }
+                label={<Typography>{t('ignoreCacheBustingParams')}</Typography>}
+              />
+            </ListItem>
+            <ListItem alignItems="center">
+              <FormControlLabel
+                control={
+                  <Switch
                     checked={!!settings?.allowIncomingConnections}
                     onChange={(e) => toggleSettings({ allowIncomingConnections: e.target.checked })}
                   />

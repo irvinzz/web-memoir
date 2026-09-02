@@ -61,5 +61,8 @@
   "websiteDiscontinued": "Site web discontinué",
   "websiteDown": "Site web indisponible",
   "websiteStateInPast": "État du site web dans le passé",
-  "yes": "Oui"
+  "yes": "Oui",
+  "ignoreCacheBustingParams": "Ignorer les paramètres de contournement du cache",
+  "cacheBustingParamsToIgnore": "Paramètres de contournement du cache à ignorer",
+  "commaSeparated": "Séparés par des virgules"
 }

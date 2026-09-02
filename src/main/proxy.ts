@@ -64,6 +64,9 @@ export async function startProxy(options: ProxyStartOptions): Promise<{
     OFFLINE_MODE: boolToEnv(spaceSettings?.offline),
     ALLOW_LARGE: boolToEnv(spaceSettings?.allowLarge),
     ALLOW_MEDIA: boolToEnv(spaceSettings?.allowMedia),
+    IGNORED_CACHE_BUSTING_PARAMS: spaceSettings.ignoreCacheBustingParams
+      ? spaceSettings.ignoreCacheBustingParamsValue?.join(',')
+      : undefined,
   };
 
   const proxyChildProcess = fork(proxyBundleFilePath, {

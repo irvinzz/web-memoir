@@ -60,5 +60,8 @@
 	"websiteDiscontinued": "Сайт закрыт",
 	"websiteDown": "Временная недоступность сайта",
 	"websiteStateInPast": "Сайт в прошлых версиях",
-	"yes": "Да"
+	"yes": "Да",
+	"ignoreCacheBustingParams": "Игнорировать параметры обхода кеша",
+	"cacheBustingParamsToIgnore": "Параметры обхода кеша для игнорирования",
+	"commaSeparated": "Через запятую"
 }

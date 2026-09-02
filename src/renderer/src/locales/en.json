@@ -58,5 +58,8 @@
 	"websiteDiscontinued": "Website discontinued",
 	"websiteDown": "Website down",
 	"websiteStateInPast": "Website state in the past",
-	"yes": "Yes"
+	"yes": "Yes",
+	"ignoreCacheBustingParams": "Ignore Cache-busting Parameters",
+	"cacheBustingParamsToIgnore": "Cache-busting Parameters to Ignore",
+	"commaSeparated": "Comma-separated"
 }
